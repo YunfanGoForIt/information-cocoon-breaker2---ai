@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "信息茧房破除插件",
+  "version": "1.0",
+  "description": "打破社交媒体信息茧房，推荐多元视角内容",
+  "permissions": ["activeTab", "storage", "scripting", "tabs"],
+  "host_permissions": [
+    "https://*.douyin.com/*",
+    "https://*.xiaohongshu.com/*",
+    "https://*.kuaishou.com/*",
+    "https://*.wechat.com/*",
+    "https://*.sohu.com/*",
+    "https://*.baidu.com/*",
+    "https://*.tiktok.com/*",
+    "https://*.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.douyin.com/*",
+        "https://*.xiaohongshu.com/*",
+        "https://*.kuaishou.com/*",
+        "https://*.wechat.com/*",
+        "https://*.sohu.com/*",
+        "https://*.baidu.com/*",
+        "https://*.tiktok.com/*",
+        "https://*.youtube.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
