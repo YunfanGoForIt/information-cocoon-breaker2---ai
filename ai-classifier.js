@@ -12,26 +12,52 @@ class AIClassifier {
 
   // 主要分类方法：两步式分类
   async classifyContent(content) {
+    console.log('🚀 ===== AI分类开始 =====');
+    console.log('📝 输入内容:', {
+      title: content.title?.substring(0, 50) + (content.title?.length > 50 ? '...' : ''),
+      description: content.description?.substring(0, 50) + (content.description?.length > 50 ? '...' : ''),
+      tags: content.tags,
+      platform: content.platform,
+      rawTextLength: content.rawText?.length || 0
+    });
+
     if (!content || !content.rawText || content.rawText.length < 10) {
+      console.error('❌ 内容不足，无法进行分类');
       throw new Error('内容不足，无法进行分类');
     }
 
     // 检查缓存
     const cacheKey = this.generateCacheKey(content.rawText);
     if (this.classificationCache.has(cacheKey)) {
-      console.log('使用缓存的分类结果');
-      return this.classificationCache.get(cacheKey);
+      const cachedResult = this.classificationCache.get(cacheKey);
+      console.log('💾 使用缓存的分类结果:', cachedResult.classificationPath);
+      console.log('🏁 ===== AI分类结束（缓存） =====');
+      return cachedResult;
     }
 
     try {
+      console.log('🎯 开始第一步：主类别分类...');
       // 第一步：确定主类别
       const mainCategoryResult = await this.classifyMainCategory(content);
+      console.log('✅ 主类别分类完成:', {
+        category: mainCategoryResult.category,
+        categoryName: mainCategoryResult.categoryName,
+        confidence: mainCategoryResult.confidence,
+        reasoning: mainCategoryResult.reasoning
+      });
       
+      console.log('🎯 开始第二步：子类别分类...');
       // 第二步：确定子类别
       const subCategoryResult = await this.classifySubCategory(
         content, 
         mainCategoryResult.category
       );
+      console.log('✅ 子类别分类完成:', {
+        category: subCategoryResult.category,
+        categoryName: subCategoryResult.categoryName,
+        confidence: subCategoryResult.confidence,
+        reasoning: subCategoryResult.reasoning
+      });
 
       // 合并结果
       const finalResult = {
@@ -54,35 +80,54 @@ class AIClassifier {
         method: 'ai_two_step'
       };
 
+      console.log('🔍 验证分类结果...');
       // 验证分类结果
       const validation = this.validateClassificationResult(finalResult);
       if (!validation.valid) {
-        console.warn('分类结果验证失败:', validation.error);
+        console.warn('❌ 分类结果验证失败:', validation.error);
         if (this.fallbackEnabled) {
-          return this.fallbackClassification(content);
+          console.log('🔄 启用备用分类方法...');
+          const fallbackResult = this.fallbackClassification(content);
+          console.log('🏁 ===== AI分类结束（备用） =====');
+          return fallbackResult;
         }
         throw new Error(validation.error);
       }
 
+      console.log('✅ 分类结果验证通过');
+      console.log('💾 缓存分类结果...');
       // 缓存结果
       this.classificationCache.set(cacheKey, finalResult);
+      
+      console.log('🎉 AI分类成功完成!');
+      console.log('📊 最终结果:', {
+        classificationPath: finalResult.classificationPath,
+        overallConfidence: finalResult.overallConfidence,
+        method: finalResult.method
+      });
+      console.log('🏁 ===== AI分类结束 =====');
       
       return finalResult;
 
     } catch (error) {
-      console.error('AI分类失败:', error);
+      console.error('❌ AI分类失败:', error);
       
       if (this.fallbackEnabled) {
-        console.log('使用备用分类方法');
-        return this.fallbackClassification(content);
+        console.log('🔄 使用备用分类方法...');
+        const fallbackResult = this.fallbackClassification(content);
+        console.log('🏁 ===== AI分类结束（备用） =====');
+        return fallbackResult;
       }
       
+      console.log('💥 AI分类完全失败，抛出错误');
+      console.log('🏁 ===== AI分类结束（失败） =====');
       throw error;
     }
   }
 
   // 第一步：主类别分类
   async classifyMainCategory(content) {
+    console.log('📋 主类别分类 - 构建提示词...');
     const mainCategories = this.categorySchema.getMainCategories();
     const categoryList = mainCategories
       .map(cat => `${cat.id}: ${cat.name} - ${cat.description}`)
@@ -114,6 +159,7 @@ ${categoryList}
 2. confidence是0-1之间的数值，表示分类的置信度
 3. reasoning简要说明选择理由`;
 
+    console.log('📤 主类别分类 - 发送API请求...');
     const messages = [
       {
         role: "system",
@@ -130,17 +176,26 @@ ${categoryList}
       max_tokens: 500
     });
 
-    return this.parseClassificationResponse(response.choices[0].message.content, 'main');
+    console.log('📥 主类别分类 - API响应收到');
+    console.log('🔤 主类别分类 - 原始响应:', response.choices[0].message.content);
+    
+    const result = this.parseClassificationResponse(response.choices[0].message.content, 'main');
+    console.log('✅ 主类别分类 - 解析完成');
+    
+    return result;
   }
 
   // 第二步：子类别分类
   async classifySubCategory(content, mainCategory) {
+    console.log(`📋 子类别分类 - 主类别: ${mainCategory}，构建提示词...`);
     const subCategories = this.categorySchema.getSubcategories(mainCategory);
     
     if (subCategories.length === 0) {
+      console.error(`❌ 主类别 ${mainCategory} 没有可用的子类别`);
       throw new Error(`主类别 ${mainCategory} 没有可用的子类别`);
     }
 
+    console.log(`📊 子类别分类 - 可选子类别数量: ${subCategories.length}`);
     const categoryList = subCategories
       .map(cat => `${cat.id}: ${cat.name} - ${cat.description}`)
       .join('\n');
@@ -175,6 +230,7 @@ ${categoryList}
 2. confidence是0-1之间的数值，表示分类的置信度
 3. reasoning简要说明选择理由，特别是为什么选择这个子类别而不是其他的`;
 
+    console.log('📤 子类别分类 - 发送API请求...');
     const messages = [
       {
         role: "system",
@@ -191,37 +247,55 @@ ${categoryList}
       max_tokens: 400
     });
 
-    return this.parseClassificationResponse(response.choices[0].message.content, 'sub');
+    console.log('📥 子类别分类 - API响应收到');
+    console.log('🔤 子类别分类 - 原始响应:', response.choices[0].message.content);
+    
+    const result = this.parseClassificationResponse(response.choices[0].message.content, 'sub');
+    console.log('✅ 子类别分类 - 解析完成');
+    
+    return result;
   }
 
   // 解析AI响应
   parseClassificationResponse(responseContent, type) {
+    console.log(`🔍 解析${type}分类响应...`);
     try {
       // 尝试提取JSON
       const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error(`❌ ${type}分类响应中未找到有效的JSON`);
         throw new Error('未找到有效的JSON响应');
       }
 
+      console.log(`✅ ${type}分类响应 - 提取到JSON`);
       const result = JSON.parse(jsonMatch[0]);
       
       // 验证必需字段
       if (!result.category || !result.categoryName || result.confidence === undefined) {
+        console.error(`❌ ${type}分类响应缺少必需字段:`, result);
         throw new Error('响应缺少必需字段');
       }
 
       // 验证置信度范围
       if (result.confidence < 0 || result.confidence > 1) {
+        console.log(`⚠️ ${type}分类置信度超出范围，进行修正: ${result.confidence}`);
         result.confidence = Math.max(0, Math.min(1, result.confidence));
       }
+
+      console.log(`✅ ${type}分类响应解析成功:`, {
+        category: result.category,
+        categoryName: result.categoryName,
+        confidence: result.confidence
+      });
 
       return result;
 
     } catch (error) {
-      console.error(`解析${type}分类响应失败:`, error);
-      console.log('原始响应:', responseContent);
+      console.error(`❌ 解析${type}分类响应失败:`, error);
+      console.log('🔤 原始响应内容:', responseContent);
       
       // 尝试备用解析方法
+      console.log(`🔄 尝试${type}分类备用解析方法...`);
       return this.parseResponseFallback(responseContent, type);
     }
   }

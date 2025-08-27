@@ -469,20 +469,39 @@ function updateThresholdConfig(percentage) {
 
 // 使用AI记录用户行为
 async function recordBehaviorWithAI(data) {
+  console.log('🤖 ===== AI行为记录开始 =====');
+  console.log('📥 输入数据:', {
+    platform: data.platform,
+    action: data.action,
+    url: data.url,
+    hasExtractedContent: !!data.extractedContent,
+    qualityScore: data.qualityScore
+  });
+
   try {
     let classification = null;
     
     // 尝试AI分类
     if (aiClassifier && data.extractedContent) {
-      console.log('开始AI分类...');
+      console.log('🎯 AI分类器已就绪，开始分类...');
+      console.log('📊 内容质量评分:', data.qualityScore);
+      
       classification = await aiClassifier.classifyContent(data.extractedContent);
-      console.log('AI分类完成:', classification);
+      console.log('✅ AI分类完成!');
       
       // 更新统计信息
+      console.log('📈 更新分类统计...');
       await updateClassificationStats(classification);
+    } else {
+      console.log('⚠️ AI分类器未就绪或无内容，跳过AI分类');
+      console.log('🔧 AI分类器状态:', {
+        aiClassifier: !!aiClassifier,
+        hasContent: !!data.extractedContent
+      });
     }
     
     // 记录行为数据
+    console.log('💾 准备行为记录数据...');
     const behaviorRecord = {
       timestamp: new Date().toISOString(),
       platform: data.platform,
@@ -500,18 +519,23 @@ async function recordBehaviorWithAI(data) {
     // 生成用于传统系统的标签
     let tags = [];
     if (classification) {
+      console.log('🏷️ 基于AI分类生成标签...');
       tags = [
         classification.mainCategory.name,
         classification.subCategory.name
       ];
+      console.log('✅ AI标签生成完成:', tags);
     } else {
+      console.log('🏷️ 使用备用标签生成...');
       // 备用标签生成
       tags = generateFallbackTags(data.extractedContent);
+      console.log('✅ 备用标签生成完成:', tags);
     }
     
     behaviorRecord.tags = tags;
     
     // 保存到存储
+    console.log('💾 保存行为记录到存储...');
     chrome.storage.local.get(["userBehavior"], (result) => {
       const behaviorHistory = result.userBehavior || [];
       behaviorHistory.push(behaviorRecord);
@@ -519,9 +543,20 @@ async function recordBehaviorWithAI(data) {
       // 保留最近100条记录
       const limitedHistory = behaviorHistory.slice(-100);
       chrome.storage.local.set({ userBehavior: limitedHistory }, () => {
+        console.log('✅ 行为记录已保存');
+        console.log('📊 当前行为记录数量:', limitedHistory.length);
         analyzeBehavior(); // 分析行为并更新推荐
       });
     });
+    
+    console.log('🎉 AI行为记录成功完成!');
+    console.log('📋 返回结果:', {
+      status: "success",
+      hasClassification: !!classification,
+      tags: tags,
+      classificationPath: classification?.classificationPath || 'N/A'
+    });
+    console.log('🏁 ===== AI行为记录结束 =====');
     
     return {
       status: "success",
@@ -530,15 +565,20 @@ async function recordBehaviorWithAI(data) {
     };
     
   } catch (error) {
-    console.error('AI行为记录失败:', error);
+    console.error('❌ AI行为记录失败:', error);
+    console.log('🔄 降级到传统方法...');
     
     // 降级到传统方法
     const fallbackTags = generateFallbackTags(data.extractedContent);
+    console.log('🏷️ 生成备用标签:', fallbackTags);
+    
     recordUserBehavior({
       platform: data.platform,
       action: data.action,
       tags: fallbackTags
     });
+    
+    console.log('🏁 ===== AI行为记录结束（降级） =====');
     
     return {
       status: "fallback",
