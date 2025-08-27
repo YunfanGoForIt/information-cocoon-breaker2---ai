@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI分类系统设置</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #007cba;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #005a87;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        
+        .preset-configs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .preset-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+        
+        .preset-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .preset-card p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #007cba;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI分类系统设置</h1>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="enableAI"> 启用AI分类功能
+            </label>
+        </div>
+
+        <div id="aiConfig" style="display: none;">
+            <div class="form-group">
+                <label for="apiProvider">选择API服务商:</label>
+                <select id="apiProvider">
+                    <option value="">请选择...</option>
+                    <option value="openai">OpenAI GPT</option>
+                    <option value="zhipu">智谱AI (GLM)</option>
+                    <option value="baidu">百度文心一言</option>
+                    <option value="qwen">阿里通义千问</option>
+                    <option value="custom">自定义服务</option>
+                </select>
+            </div>
+
+            <div class="preset-configs" id="presetConfigs">
+                <!-- 预设配置卡片将在这里动态生成 -->
+            </div>
+
+            <div class="form-group">
+                <label for="apiKey">API密钥:</label>
+                <input type="password" id="apiKey" placeholder="输入您的API密钥">
+                <div class="info">
+                    💡 开发阶段可以直接填入，生产环境建议使用环境变量
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="baseUrl">API地址:</label>
+                <input type="url" id="baseUrl" placeholder="https://api.openai.com/v1">
+            </div>
+
+            <div class="form-group">
+                <label for="model">模型名称:</label>
+                <input type="text" id="model" placeholder="gpt-3.5-turbo">
+            </div>
+
+            <div style="text-align: center;">
+                <button onclick="saveConfig()">💾 保存配置</button>
+                <button onclick="testConnection()">🔍 测试连接</button>
+                <button onclick="resetConfig()">🔄 重置</button>
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div id="devQuickSetup" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3>🚀 开发快速配置</h3>
+            <p>开发阶段快速配置（密钥会保存在扩展存储中）：</p>
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end;">
+                <input type="password" id="quickApiKey" placeholder="粘贴您的API密钥">
+                <button onclick="quickSetup()">一键配置OpenAI</button>
+            </div>
+            <div class="info">
+                ⚠️ 此功能仅适用于开发测试，请勿在生产环境使用
+            </div>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>
