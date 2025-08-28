@@ -2,6 +2,10 @@
 let pluginApiClient = null;
 let pluginClassifier = null;
 
+// 🔄 AI分析队列系统
+const analysisQueue = [];
+let isQueueProcessorRunning = false;
+
 // 🔧 [简化] 直接使用内联AI模块，不再尝试外部模块
 let CategorySchema, AIApiClient, AIClassifier;
 
@@ -507,7 +511,7 @@ ${categoryList}
       console.log(`✅ ${type}分类响应解析成功:`, result);
       return result;
 
-    } catch (error) {
+  } catch (error) {
       console.error(`❌ 解析${type}分类响应失败:`, error);
       throw error;
     }
@@ -517,6 +521,198 @@ ${categoryList}
 };
 
 console.log('✅ 内联AI模块加载完成');
+console.log('🔄 队列系统已就绪');
+
+// 🔄 队列管理函数
+// 添加到分析队列
+function addToAnalysisQueue(content, url, data) {
+  const queueItem = {
+    url: url,
+    content: content,
+    data: data,
+    timestamp: Date.now(),
+    retryCount: 0
+  };
+  
+  analysisQueue.push(queueItem);
+  console.log(`📥 添加到分析队列，当前队列长度: ${analysisQueue.length}`);
+  
+  // 启动队列处理器（如果还没运行）
+  startQueueProcessor();
+  
+  return {
+    status: "queued",
+    queueLength: analysisQueue.length,
+    message: "已加入分析队列"
+  };
+}
+
+// 队列处理器
+async function startQueueProcessor() {
+  if (isQueueProcessorRunning) {
+    return; // 已经在运行了
+  }
+  
+  isQueueProcessorRunning = true;
+  console.log('🚀 启动队列处理器');
+  
+  while (analysisQueue.length > 0) {
+    const item = analysisQueue.shift();
+    console.log(`🎯 处理队列项: ${item.url}`);
+    
+    try {
+      // 执行AI分析
+      const result = await performAIAnalysis(item.content, item.data);
+      
+      // 保存结果
+      await saveAnalysisResult(item.url, result, item.data);
+      
+      console.log(`✅ 队列项处理完成: ${item.url}`);
+      
+    } catch (error) {
+      console.error(`❌ 队列项处理失败: ${item.url}`, error);
+      
+      // 重试机制
+      if (item.retryCount < 2) {
+        item.retryCount++;
+        analysisQueue.unshift(item); // 重新加入队列头部
+        console.log(`🔄 重试队列项: ${item.url} (第${item.retryCount + 1}次)`);
+      } else {
+        console.log(`💀 队列项处理失败，放弃重试: ${item.url}`);
+        // 降级处理
+        await handleAnalysisFailure(item.data, error);
+      }
+    }
+    
+    // 添加延迟，避免API限流
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  
+  isQueueProcessorRunning = false;
+  console.log('🏁 队列处理器完成');
+}
+
+// 执行AI分析
+async function performAIAnalysis(content, data) {
+  // 简单检查：如果没有初始化，先初始化
+  if (!pluginApiClient || !pluginClassifier) {
+    console.log('🔄 AI系统未初始化，开始初始化...');
+    
+    const result = await chrome.storage.local.get(['aiApiConfig']);
+    if (result.aiApiConfig) {
+      initializePluginAPI(result.aiApiConfig);
+    } else {
+      throw new Error('未找到API配置');
+    }
+  }
+
+  let classification = null;
+  
+  // 执行AI分类
+  if (pluginClassifier && content) {
+    console.log('🎯 开始AI分类...');
+    classification = await pluginClassifier.classifyContent(content);
+    console.log('✅ AI分类完成!', classification);
+    
+    // 更新统计信息
+    await updateClassificationStats(classification);
+  } else {
+    console.log('⚠️ AI分类器未就绪或无内容');
+  }
+  
+  return classification;
+}
+
+// 保存分析结果
+async function saveAnalysisResult(url, classification, data) {
+  // 记录行为数据
+  console.log('💾 准备行为记录数据...');
+  const behaviorRecord = {
+    timestamp: new Date().toISOString(),
+    platform: data.platform,
+    action: data.action,
+    url: url,
+    extractedContent: {
+      title: data.extractedContent?.title || '',
+      description: data.extractedContent?.description?.substring(0, 200) || '',
+      platform: data.extractedContent?.platform || data.platform
+    },
+    classification: classification,
+    qualityScore: data.qualityScore
+  };
+  
+  // 生成用于传统系统的标签
+  let tags = [];
+  if (classification) {
+    console.log('🏷️ 基于AI分类生成标签...');
+    tags = [
+      classification.mainCategory.name,
+      classification.subCategory.name
+    ];
+    console.log('✅ AI标签生成完成:', tags);
+  } else {
+    console.log('🏷️ 使用备用标签生成...');
+    // 备用标签生成
+    tags = generateFallbackTags(data.extractedContent);
+    console.log('✅ 备用标签生成完成:', tags);
+  }
+  
+  behaviorRecord.tags = tags;
+  
+  // 保存到存储
+  console.log('💾 保存行为记录到存储...');
+  const result = await chrome.storage.local.get(["userBehavior"]);
+  const behaviorHistory = result.userBehavior || [];
+  behaviorHistory.push(behaviorRecord);
+  
+  // 保留最近100条记录
+  const limitedHistory = behaviorHistory.slice(-100);
+  await chrome.storage.local.set({ userBehavior: limitedHistory });
+  
+  console.log('✅ 行为记录已保存');
+  console.log('📊 当前行为记录数量:', limitedHistory.length);
+  
+  // 直接生成AI推荐
+  generateAIBasedRecommendationsFromHistory(limitedHistory);
+  
+  return {
+    classification: classification,
+    tags: tags
+  };
+}
+
+// 处理分析失败
+async function handleAnalysisFailure(data, error) {
+  console.log('🔄 降级到传统方法...');
+  
+  // 降级到传统方法
+  const fallbackTags = generateFallbackTags(data.extractedContent);
+  console.log('🏷️ 生成备用标签:', fallbackTags);
+  
+  recordUserBehavior({
+    platform: data.platform,
+    action: data.action,
+    tags: fallbackTags
+  });
+  
+  return {
+    status: "fallback",
+    tags: fallbackTags,
+    error: error.message
+  };
+}
+
+// 获取队列状态
+function getQueueStatus() {
+  return {
+    queueLength: analysisQueue.length,
+    isProcessing: isQueueProcessorRunning,
+    nextItem: analysisQueue[0] ? {
+      url: analysisQueue[0].url,
+      timestamp: analysisQueue[0].timestamp
+    } : null
+  };
+}
 
 // 开发阶段默认配置（生产环境请删除或注释掉）
 const DEV_DEFAULT_CONFIG = {
@@ -698,6 +894,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(result);
       });
       return true;
+    case "getQueueStatus":
+      sendResponse(getQueueStatus());
+      break;
+    case "addToQueue":
+      console.log('🧪 测试添加到队列...');
+      const testResult = addToAnalysisQueue(
+        request.testContent || { title: "测试内容", description: "测试描述" },
+        request.testUrl || "https://test.com",
+        request.testData || { platform: "test", action: "view" }
+      );
+      sendResponse(testResult);
+      break;
     default:
       console.warn('⚠️ 未知的消息类型:', request.action);
       sendResponse({ status: "error", error: "Unknown action" });
@@ -721,15 +929,14 @@ function recordUserBehavior(data) {
     // 保留最近100条记录
     const limitedHistory = behaviorHistory.slice(-100);
     chrome.storage.local.set({ userBehavior: limitedHistory }, () => {
-      analyzeBehavior(); // 分析行为并更新推荐
+      // 直接生成AI推荐
+      generateAIBasedRecommendationsFromHistory(limitedHistory);
     });
   });
 }
 
-// 分析用户行为生成推荐（增强版）
-function analyzeBehavior() {
-  chrome.storage.local.get(["userBehavior"], (result) => {
-    const behaviorHistory = result.userBehavior || [];
+// 基于历史记录生成AI推荐
+function generateAIBasedRecommendationsFromHistory(behaviorHistory) {
     if (behaviorHistory.length < 5) return;
 
     // 分析AI分类的行为记录
@@ -739,15 +946,10 @@ function analyzeBehavior() {
       // 使用AI分类结果生成推荐
       const recommendations = generateAIBasedRecommendations(aiClassifiedBehaviors);
       chrome.storage.local.set({ recommendations });
-    } else {
-      // 使用传统方法
-      const legacyRecommendations = generateLegacyRecommendations(behaviorHistory);
-      chrome.storage.local.set({ recommendations: legacyRecommendations });
-    }
     
     // 检查是否需要显示提示
     checkPromptNeed(behaviorHistory);
-  });
+  }
 }
 
 // 基于AI分类结果生成推荐
@@ -767,7 +969,7 @@ function generateAIBasedRecommendations(aiClassifiedBehaviors) {
   });
   
   // 找出用户较少涉及的类别
-  const allMainCategories = categorySchema ? categorySchema.getMainCategories() : [];
+  const allMainCategories = CategorySchema ? CategorySchema.getMainCategories() : [];
   const recommendations = [];
   
   allMainCategories.forEach(category => {
@@ -777,7 +979,7 @@ function generateAIBasedRecommendations(aiClassifiedBehaviors) {
     
     // 如果用户在该类别的行为占比较低，推荐该类别
     if (ratio < 0.3) {
-      const subCategories = categorySchema ? categorySchema.getSubcategories(category.id) : [];
+      const subCategories = CategorySchema ? CategorySchema.getSubcategories(category.id) : [];
       const randomSubCategory = subCategories[Math.floor(Math.random() * subCategories.length)];
       
       if (randomSubCategory) {
@@ -798,121 +1000,7 @@ function generateAIBasedRecommendations(aiClassifiedBehaviors) {
     .map(item => `${item.category}·${item.subCategory}`);
 }
 
-// 传统推荐方法备用
-function generateLegacyRecommendations(behaviorHistory) {
-  // 提取用户兴趣标签
-  const tagFrequency = {};
-  behaviorHistory.forEach(record => {
-    if (record.tags) {
-      record.tags.forEach(tag => {
-        tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
-      });
-    }
-  });
-  
-  const interestTags = Object.entries(tagFrequency)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(item => item[0]);
-  
-  // 使用改进的分层分类系统
-  return getDiverseTags(interestTags);
-}
 
-// 获取多样化标签（改进的分层分类系统）
-function getDiverseTags(interestTags) {
-  // 基于研究的最优分层标签系统
-  const hierarchicalTagPool = {
-    technology: {
-      ai_tech: ["人工智能伦理", "机器学习应用", "AI安全", "算法公平性"],
-      emerging_tech: ["量子计算", "区块链技术", "生物技术", "新能源技术"],
-      digital_society: ["网络安全", "数字隐私", "网络治理", "数字鸿沟"]
-    },
-    culture_arts: {
-      traditional: ["古典文学", "传统工艺", "历史文化", "民间艺术"],
-      contemporary: ["现代艺术", "流行文化", "数字艺术", "创意产业"],
-      global: ["世界音乐", "跨文化交流", "国际艺术", "文化多样性"]
-    },
-    science_nature: {
-      environmental: ["气候科学", "生物多样性", "可持续发展", "环境保护"],
-      life_sciences: ["神经科学", "基因科学", "医学前沿", "健康科学"],
-      physical_sciences: ["空间探索", "物理前沿", "天文发现", "材料科学"]
-    },
-    society_humanity: {
-      social_issues: ["社会心理学", "城市规划", "社会公正", "人口问题"],
-      governance: ["公共政策", "国际关系", "政治科学", "法律制度"],
-      economics: ["经济史", "发展经济学", "行为经济学", "全球化"]
-    },
-    lifestyle_wellness: {
-      health: ["心理健康", "运动科学", "营养学", "预防医学"],
-      personal_dev: ["终身学习", "技能发展", "创业精神", "职业规划"],
-      relationships: ["人际关系", "家庭教育", "社区建设", "志愿服务"]
-    },
-    education_knowledge: {
-      learning_methods: ["教育创新", "在线学习", "技能培训", "知识管理"],
-      academic: ["科学研究", "学术写作", "批判思维", "研究方法"],
-      practical: ["实用技能", "生活技巧", "手工制作", "日常科学"]
-    }
-  };
-
-  return generateDiverseRecommendations(interestTags, hierarchicalTagPool);
-}
-
-// 智能推荐算法
-function generateDiverseRecommendations(userInterests, tagPool) {
-  const recommendations = [];
-  const usedCategories = new Set();
-  
-  // 分析用户兴趣所属的主要类别
-  const userMainCategories = identifyUserCategories(userInterests, tagPool);
-  
-  // 从每个主要类别中选择推荐
-  Object.keys(tagPool).forEach(mainCategory => {
-    // 优先推荐用户较少涉及的类别
-    const categoryWeight = userMainCategories[mainCategory] || 0;
-    const inverseWeight = 1 - (categoryWeight / Math.max(...Object.values(userMainCategories), 1));
-    
-    if (inverseWeight > 0.3) { // 阈值可调整
-      const subCategories = Object.keys(tagPool[mainCategory]);
-      const randomSubCategory = subCategories[Math.floor(Math.random() * subCategories.length)];
-      const tags = tagPool[mainCategory][randomSubCategory];
-      
-      // 选择用户未接触过的标签
-      const novelTag = tags.find(tag => !userInterests.includes(tag));
-      if (novelTag && recommendations.length < 6) {
-        recommendations.push({
-          tag: novelTag,
-          category: mainCategory,
-          subCategory: randomSubCategory,
-          diversityScore: inverseWeight
-        });
-      }
-    }
-  });
-  
-  // 按多样性得分排序并返回标签
-  return recommendations
-    .sort((a, b) => b.diversityScore - a.diversityScore)
-    .slice(0, 4)
-    .map(item => item.tag);
-}
-
-// 识别用户兴趣的主要类别分布
-function identifyUserCategories(userInterests, tagPool) {
-  const categoryCount = {};
-  
-  userInterests.forEach(interest => {
-    Object.keys(tagPool).forEach(mainCategory => {
-      Object.values(tagPool[mainCategory]).forEach(subCategoryTags => {
-        if (subCategoryTags.includes(interest)) {
-          categoryCount[mainCategory] = (categoryCount[mainCategory] || 0) + 1;
-        }
-      });
-    });
-  });
-  
-  return categoryCount;
-}
 
 // 从标签或分类结果获取领域信息（增强版）
 function getDomainFromTag(tag) {
@@ -1013,7 +1101,7 @@ async function getRecommendations(tags) {
       } else if (behaviorHistory.length >= 5) {
         // 如果有足够的行为数据但没有推荐，触发重新生成
         console.log('🔄 触发推荐重新生成...');
-        analyzeBehavior();
+        generateAIBasedRecommendationsFromHistory(behaviorHistory);
         
         // 等待推荐生成完成后返回
         setTimeout(() => {
@@ -1058,143 +1146,17 @@ function updateThresholdConfig(percentage) {
   });
 }
 
-// 使用AI记录用户行为 - 简化版本
+// 使用AI记录用户行为 - 队列版本
 async function recordBehaviorWithAI(data) {
-  console.log('🤖 ===== AI行为记录开始 =====');
+  console.log('🤖 ===== AI行为记录开始（队列版本） =====');
   
-  // 简单检查：如果没有初始化，先初始化
-  if (!pluginApiClient || !pluginClassifier) {
-    console.log('🔄 AI系统未初始化，开始初始化...');
-    
-    try {
-      const result = await chrome.storage.local.get(['aiApiConfig']);
-      if (result.aiApiConfig) {
-        initializePluginAPI(result.aiApiConfig);
-  } else {
-        throw new Error('未找到API配置');
-      }
-    } catch (error) {
-      console.error('❌ AI系统初始化失败:', error);
-      throw new Error('AI系统初始化失败: ' + error.message);
-    }
-  }
-  console.log('✅ AI系统已就绪，开始分类...');
-
-  // 创建一个用于向content.js发送调试信息的函数
-  const sendDebugToContent = (message, data = null) => {
-    console.log(message, data || '');
-    // 这里可以尝试向当前标签页发送调试信息，但可能会因为权限问题而失败
-  };
-
-  try {
-    let classification = null;
-    
-    console.log('✅ AI系统已就绪，开始分类...');
-    
-    // 简单AI分类 - 仿照测试网页
-    if (pluginClassifier && data.extractedContent) {
-      console.log('🎯 开始AI分类...');
-      
-      try {
-        classification = await pluginClassifier.classifyContent(data.extractedContent);
-        console.log('✅ AI分类完成!', classification);
-        
-        // 更新统计信息
-        await updateClassificationStats(classification);
-      } catch (classificationError) {
-        console.error('❌ AI分类失败:', classificationError);
-        // 不抛出错误，继续使用备用方法
-      }
-    } else {
-      console.log('⚠️ AI分类器未就绪或无内容');
-    }
-    
-    // 记录行为数据
-    console.log('💾 准备行为记录数据...');
-    const behaviorRecord = {
-      timestamp: new Date().toISOString(),
-      platform: data.platform,
-      action: data.action,
-      url: data.url,
-      extractedContent: {
-        title: data.extractedContent?.title || '',
-        description: data.extractedContent?.description?.substring(0, 200) || '',
-        platform: data.extractedContent?.platform || data.platform
-      },
-      classification: classification,
-      qualityScore: data.qualityScore
-    };
-    
-    // 生成用于传统系统的标签
-    let tags = [];
-    if (classification) {
-      console.log('🏷️ 基于AI分类生成标签...');
-      tags = [
-        classification.mainCategory.name,
-        classification.subCategory.name
-      ];
-      console.log('✅ AI标签生成完成:', tags);
-    } else {
-      console.log('🏷️ 使用备用标签生成...');
-      // 备用标签生成
-      tags = generateFallbackTags(data.extractedContent);
-      console.log('✅ 备用标签生成完成:', tags);
-    }
-    
-    behaviorRecord.tags = tags;
-    
-    // 保存到存储
-    console.log('💾 保存行为记录到存储...');
-    chrome.storage.local.get(["userBehavior"], (result) => {
-      const behaviorHistory = result.userBehavior || [];
-      behaviorHistory.push(behaviorRecord);
-      
-      // 保留最近100条记录
-      const limitedHistory = behaviorHistory.slice(-100);
-      chrome.storage.local.set({ userBehavior: limitedHistory }, () => {
-        console.log('✅ 行为记录已保存');
-        console.log('📊 当前行为记录数量:', limitedHistory.length);
-        analyzeBehavior(); // 分析行为并更新推荐
-      });
-    });
-    
-    console.log('🎉 AI行为记录成功完成!');
-    console.log('📋 返回结果:', {
-      status: "success",
-      hasClassification: !!classification,
-      tags: tags,
-      classificationPath: classification?.classificationPath || 'N/A'
-    });
-    console.log('🏁 ===== AI行为记录结束 =====');
-    
-    return {
-      status: "success",
-      classification: classification,
-      tags: tags
-    };
-    
-  } catch (error) {
-    console.error('❌ AI行为记录失败:', error);
-    console.log('🔄 降级到传统方法...');
-    
-    // 降级到传统方法
-    const fallbackTags = generateFallbackTags(data.extractedContent);
-    console.log('🏷️ 生成备用标签:', fallbackTags);
-    
-    recordUserBehavior({
-      platform: data.platform,
-      action: data.action,
-      tags: fallbackTags
-    });
-    
-    console.log('🏁 ===== AI行为记录结束（降级） =====');
-    
-    return {
-      status: "fallback",
-      tags: fallbackTags,
-      error: error.message
-    };
-  }
+  // 直接添加到队列，无需任何判断
+  const result = addToAnalysisQueue(data.extractedContent, data.url, data);
+  
+  console.log('📥 请求已加入队列:', result);
+  console.log('🏁 ===== AI行为记录结束（队列版本） =====');
+  
+  return result;
 }
 
 // 生成备用标签

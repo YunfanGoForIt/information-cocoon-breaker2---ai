@@ -338,6 +338,15 @@ async function analyzePageWithExtractor(platform) {
             ];
             console.log('🏷️ 更新用户活动记录:', aiTags);
             recordRecentActivity(aiTags);
+          } else if (response && response.status === "queued") {
+            console.log('📥 请求已加入AI分析队列');
+            console.log('🔄 队列状态:', {
+              queueLength: response.queueLength,
+              message: response.message
+            });
+            // 显示队列状态提示
+            showQueueStatus(response);
+            // 队列中的请求不需要任何额外处理，等待后台异步处理
           } else {
             console.log('⚠️ AI分类失败或无分类结果，降级到传统方法');
             console.log('🔍 响应状态分析:', {
@@ -454,6 +463,71 @@ function generateContentHash(content) {
 // 重置分析状态
 function resetAnalysisState() {
   analysisState.analysisInProgress = false;
+}
+
+// 显示队列状态提示
+function showQueueStatus(response) {
+  // 创建状态提示元素
+  const statusDiv = document.createElement('div');
+  statusDiv.id = 'ai-queue-status';
+  statusDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    z-index: 10000;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+  `;
+  
+  statusDiv.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="width: 8px; height: 8px; background: #fff; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+      <span>📥 内容已加入AI分析队列 (${response.queueLength})</span>
+    </div>
+  `;
+  
+  // 添加动画样式
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // 移除已存在的状态提示
+  const existingStatus = document.getElementById('ai-queue-status');
+  if (existingStatus) {
+    existingStatus.remove();
+  }
+  
+  document.body.appendChild(statusDiv);
+  
+  // 显示动画
+  setTimeout(() => {
+    statusDiv.style.opacity = '1';
+    statusDiv.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    statusDiv.style.opacity = '0';
+    statusDiv.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (statusDiv.parentNode) {
+        statusDiv.parentNode.removeChild(statusDiv);
+      }
+    }, 300);
+  }, 3000);
 }
 
 // 检测是否为主页或信息流页面（不应该分析的页面）

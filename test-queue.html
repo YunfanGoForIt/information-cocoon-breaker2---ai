@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>队列系统测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .button:hover { background: #45a049; }
+        .status { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .queue-item { background: #e8f4f8; padding: 8px; margin: 5px 0; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 AI分析队列系统测试</h1>
+        
+        <div class="controls">
+            <button class="button" onclick="addTestItem()">添加测试项到队列</button>
+            <button class="button" onclick="getQueueStatus()">获取队列状态</button>
+            <button class="button" onclick="addMultipleItems()">添加多个测试项</button>
+        </div>
+        
+        <div class="status" id="status">
+            点击按钮开始测试...
+        </div>
+        
+        <div id="queue-info">
+            <h3>队列信息</h3>
+            <div id="queue-details"></div>
+        </div>
+        
+        <div id="logs">
+            <h3>测试日志</h3>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logContent = document.getElementById('log-content');
+            const timestamp = new Date().toLocaleTimeString();
+            logContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+
+        function addTestItem() {
+            const testContent = {
+                title: `测试内容 ${Date.now()}`,
+                description: "这是一个测试描述，用于验证队列系统是否正常工作",
+                platform: "test"
+            };
+
+            const testData = {
+                platform: "test",
+                action: "view",
+                extractedContent: testContent,
+                url: `https://test.com/${Date.now()}`,
+                qualityScore: { overall: 85 }
+            };
+
+            chrome.runtime.sendMessage({
+                action: "addToQueue",
+                testContent: testContent,
+                testUrl: testData.url,
+                testData: testData
+            }, (response) => {
+                log(`✅ 添加测试项: ${JSON.stringify(response)}`);
+                updateStatus(`队列长度: ${response.queueLength}`);
+                getQueueStatus();
+            });
+        }
+
+        function getQueueStatus() {
+            chrome.runtime.sendMessage({
+                action: "getQueueStatus"
+            }, (response) => {
+                log(`📊 队列状态: ${JSON.stringify(response)}`);
+                
+                const queueDetails = document.getElementById('queue-details');
+                queueDetails.innerHTML = `
+                    <div class="queue-item"><strong>队列长度:</strong> ${response.queueLength}</div>
+                    <div class="queue-item"><strong>正在处理:</strong> ${response.isProcessing ? '是' : '否'}</div>
+                    <div class="queue-item"><strong>下一项:</strong> ${response.nextItem ? response.nextItem.url : '无'}</div>
+                `;
+                
+                updateStatus(`队列: ${response.queueLength} 项, 处理中: ${response.isProcessing}`);
+            });
+        }
+
+        function addMultipleItems() {
+            updateStatus('正在添加多个测试项...');
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    addTestItem();
+                }, i * 200);
+            }
+            
+            setTimeout(() => {
+                getQueueStatus();
+            }, 1500);
+        }
+
+        // 页面加载时获取初始状态
+        window.addEventListener('load', () => {
+            log('🚀 队列测试页面已加载');
+            getQueueStatus();
+            
+            // 每5秒自动更新状态
+            setInterval(getQueueStatus, 5000);
+        });
+    </script>
+</body>
+</html>
