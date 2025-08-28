@@ -39,24 +39,44 @@ class ContentExtractor {
       xiaohongshu: {
         selectors: {
           title: [
+            '#noteContainer #detail-title',
+            '#noteContainer .title',
+            '.note-container #detail-title',
+            '.note-container .title',
             '.note-item .title',
             '.feed-title',
             '[data-v-*] .title',
             '.note-detail .title'
           ],
           description: [
+            '#noteContainer #detail-desc .note-text',
+            '#noteContainer .desc .note-text',
+            '.note-container #detail-desc .note-text',
+            '.note-container .desc .note-text',
+            '#detail-desc .note-text span',
+            '.note-content .note-text',
             '.note-item .desc',
             '.feed-content .desc',
             '.note-content .text',
             '.note-detail .content'
           ],
           tags: [
+            '#noteContainer .tag-item',
+            '#noteContainer .topic-tag',
+            '#noteContainer .hashtag',
+            '.note-container .tag-item',
+            '.note-container .topic-tag',
+            '.note-container .hashtag',
             '.tag-item',
             '.topic-tag',
             '.hashtag',
             'a[href*="/search_result"]'
           ],
           author: [
+            '#noteContainer .author-wrapper .username',
+            '#noteContainer .author .name',
+            '.note-container .author-wrapper .username',
+            '.note-container .author .name',
             '.author-info .name',
             '.user-name',
             '.author-name'
@@ -66,8 +86,18 @@ class ContentExtractor {
           /^#/,
           /展开全文/,
           /收起全文/,
+          /说点什么\.\.\./, // 移除占位符文本
+          /共\s*\d+\s*条评论/, // 移除评论计数
+          /昨天\s*\d{1,2}:\d{2}/, // 移除时间信息
+          /\d+小时前/, // 移除相对时间
+          /北京|上海|广东|四川/, // 移除地理位置
           /\s+/g
-        ]
+        ],
+        // 小红书特殊的容器过滤规则
+        containerFilter: {
+          include: ['#noteContainer', '.note-container'],
+          exclude: ['.interaction-container', '.comments-el', '.engage-bar']
+        }
       },
 
       kuaishou: {
@@ -180,12 +210,27 @@ class ContentExtractor {
   }
 
   // 使用选择器提取文本
-  extractTextBySelectors(selectors, cleanupRules = []) {
+  extractTextBySelectors(selectors, cleanupRules = [], containerFilter = null) {
     let text = '';
     
     for (const selector of selectors) {
       try {
-        const elements = document.querySelectorAll(selector);
+        let elements;
+        
+        // 如果指定了容器过滤器，先在容器内查找
+        if (containerFilter && containerFilter.include) {
+          elements = [];
+          for (const containerSelector of containerFilter.include) {
+            const containers = document.querySelectorAll(containerSelector);
+            containers.forEach(container => {
+              const foundElements = container.querySelectorAll(selector);
+              elements.push(...foundElements);
+            });
+          }
+        } else {
+          elements = document.querySelectorAll(selector);
+        }
+        
         if (elements.length > 0) {
           const extractedTexts = Array.from(elements)
             .map(el => el.textContent || el.innerText || '')
@@ -256,17 +301,22 @@ class ContentExtractor {
     // 提取标题
     content.title = this.extractTextBySelectors(
       config.selectors.title,
-      config.cleanupRules
+      config.cleanupRules,
+      config.containerFilter
     );
 
     // 提取描述
     content.description = this.extractTextBySelectors(
       config.selectors.description,
-      config.cleanupRules
+      config.cleanupRules,
+      config.containerFilter
     );
 
     // 提取标签
-    const tagElements = this.extractMultipleElements(config.selectors.tags);
+    const tagElements = this.extractMultipleElements(
+      config.selectors.tags,
+      config.containerFilter
+    );
     content.tags = tagElements
       .map(text => this.cleanupText(text, config.cleanupRules))
       .filter(tag => tag.length > 0 && tag.length < 50)
@@ -275,7 +325,8 @@ class ContentExtractor {
     // 提取作者
     content.author = this.extractTextBySelectors(
       config.selectors.author,
-      config.cleanupRules
+      config.cleanupRules,
+      config.containerFilter
     );
 
     // 生成原始文本用于AI分析
@@ -298,12 +349,27 @@ class ContentExtractor {
   }
 
   // 提取多个元素的文本
-  extractMultipleElements(selectors) {
+  extractMultipleElements(selectors, containerFilter = null) {
     const texts = [];
     
     for (const selector of selectors) {
       try {
-        const elements = document.querySelectorAll(selector);
+        let elements;
+        
+        // 如果指定了容器过滤器，先在容器内查找
+        if (containerFilter && containerFilter.include) {
+          elements = [];
+          for (const containerSelector of containerFilter.include) {
+            const containers = document.querySelectorAll(containerSelector);
+            containers.forEach(container => {
+              const foundElements = container.querySelectorAll(selector);
+              elements.push(...foundElements);
+            });
+          }
+        } else {
+          elements = document.querySelectorAll(selector);
+        }
+        
         elements.forEach(el => {
           const text = (el.textContent || el.innerText || '').trim();
           if (text.length > 0) {
@@ -392,6 +458,11 @@ class ContentExtractor {
     // 首先尝试平台特定提取
     let content = this.extractPageContent();
     
+    // 对小红书平台使用特殊的验证和增强
+    if (content.platform === 'xiaohongshu') {
+      content = this.validateAndEnhanceXiaohongshuContent(content);
+    }
+    
     // 如果内容不足，尝试智能增强
     if (content.rawText.length < 30) {
       content = this.enhanceContent(content);
@@ -402,6 +473,89 @@ class ContentExtractor {
       content: content,
       timestamp: Date.now()
     });
+
+    return content;
+  }
+
+  // 小红书特定的内容验证和增强
+  validateAndEnhanceXiaohongshuContent(content) {
+    // 检查是否在帖子详情页
+    const noteContainer = document.querySelector('#noteContainer') || document.querySelector('.note-container');
+    if (!noteContainer) {
+      console.warn('未找到小红书帖子容器，可能不在帖子详情页');
+      return content;
+    }
+
+    // 增强内容提取：如果没有提取到标题，尝试其他方法
+    if (!content.title || content.title.length < 5) {
+      const alternativeTitleSelectors = [
+        '#noteContainer .note-text span:first-child',
+        '.note-container .note-text span:first-child',
+        '#detail-title',
+        '[data-v-610be4fa] .title'
+      ];
+      
+      for (const selector of alternativeTitleSelectors) {
+        try {
+          const element = document.querySelector(selector);
+          if (element) {
+            const titleText = element.textContent || element.innerText || '';
+            if (titleText.trim().length > 5) {
+              content.title = this.cleanupText(titleText.trim().substring(0, 100)); // 限制标题长度
+              break;
+            }
+          }
+        } catch (error) {
+          console.warn(`备用标题提取失败 ${selector}:`, error);
+        }
+      }
+    }
+
+    // 增强描述提取
+    if (!content.description || content.description.length < 10) {
+      const alternativeDescSelectors = [
+        '#noteContainer #detail-desc',
+        '.note-container #detail-desc', 
+        '#detail-desc .note-text',
+        '[data-v-610be4fa] .desc'
+      ];
+      
+      for (const selector of alternativeDescSelectors) {
+        try {
+          const element = document.querySelector(selector);
+          if (element) {
+            const descText = element.textContent || element.innerText || '';
+            if (descText.trim().length > 10) {
+              content.description = this.cleanupText(descText.trim());
+              break;
+            }
+          }
+        } catch (error) {
+          console.warn(`备用描述提取失败 ${selector}:`, error);
+        }
+      }
+    }
+
+    // 特殊清理：移除小红书特有的干扰内容
+    const xiaohongshuSpecificCleanup = [
+      /关注/, // 移除“关注”按钮文本
+      /\d+\/\d+/, // 移除分页数字
+      /赞|collect|回复/, // 移除互动按钮文本
+      /MacTalk|作者/, // 移除作者标签
+      /展开\s*\d+\s*条回复/ // 移除回复展开按钮
+    ];
+
+    xiaohongshuSpecificCleanup.forEach(rule => {
+      content.title = content.title.replace(rule, '').trim();
+      content.description = content.description.replace(rule, '').trim();
+    });
+
+    // 重新生成rawText
+    content.rawText = [
+      content.title,
+      content.description,
+      content.tags.join(' ')
+    ].filter(t => t.length > 0).join(' ');
 
     return content;
   }

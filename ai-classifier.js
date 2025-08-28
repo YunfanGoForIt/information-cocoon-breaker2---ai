@@ -10,35 +10,125 @@ class AIClassifier {
     this.fallbackEnabled = true;
   }
 
+  // 标准化输入内容数据结构
+  normalizeContentData(content) {
+    console.log('🔧 开始数据标准化...');
+    console.log('📋 原始输入数据:', {
+      type: typeof content,
+      isNull: content === null,
+      isUndefined: content === undefined,
+      keys: content ? Object.keys(content) : [],
+      hasRawText: !!(content?.rawText)
+    });
+
+    if (!content || typeof content !== 'object') {
+      console.error('❌ 非法内容数据:', content);
+      throw new Error('内容数据不是有效对象');
+    }
+
+    // 标准化字段
+    const normalized = {
+      title: content.title || '',
+      description: content.description || '',
+      tags: Array.isArray(content.tags) ? content.tags : [],
+      platform: content.platform || 'unknown',
+      rawText: content.rawText || ''
+    };
+
+    // 如果rawText为空，尝试重新生成
+    if (!normalized.rawText || normalized.rawText.trim().length === 0) {
+      console.log('🔄 rawText为空，重新生成...');
+      const parts = [
+        normalized.title,
+        normalized.description,
+        normalized.tags.join(' ')
+      ].filter(part => part && part.trim().length > 0);
+      
+      normalized.rawText = parts.join(' ');
+      
+      console.log('🔄 重新生成的rawText:', {
+        length: normalized.rawText.length,
+        preview: normalized.rawText.substring(0, 100) + '...'
+      });
+    }
+
+    console.log('✅ 数据标准化完成:', {
+      titleLength: normalized.title.length,
+      descriptionLength: normalized.description.length,
+      tagsCount: normalized.tags.length,
+      platform: normalized.platform,
+      rawTextLength: normalized.rawText.length
+    });
+
+    return normalized;
+  }
+
   // 主要分类方法：两步式分类
   async classifyContent(content) {
     console.log('🚀 ===== AI分类开始 =====');
-    console.log('📝 输入内容:', {
-      title: content.title?.substring(0, 50) + (content.title?.length > 50 ? '...' : ''),
-      description: content.description?.substring(0, 50) + (content.description?.length > 50 ? '...' : ''),
-      tags: content.tags,
-      platform: content.platform,
-      rawTextLength: content.rawText?.length || 0
+    
+    // 标准化输入内容数据结构
+    const normalizedContent = this.normalizeContentData(content);
+    
+    console.log('📝 标准化后的输入内容:', {
+      title: normalizedContent.title?.substring(0, 50) + (normalizedContent.title?.length > 50 ? '...' : ''),
+      description: normalizedContent.description?.substring(0, 50) + (normalizedContent.description?.length > 50 ? '...' : ''),
+      tags: normalizedContent.tags,
+      platform: normalizedContent.platform,
+      rawTextLength: normalizedContent.rawText?.length || 0
     });
 
-    if (!content || !content.rawText || content.rawText.length < 10) {
+    // 检查API客户端状态
+    console.log('🔍 检查API客户端状态:', {
+      hasApiClient: !!this.apiClient,
+      hasCategorySchema: !!this.categorySchema,
+      confidenceThreshold: this.confidenceThreshold,
+      fallbackEnabled: this.fallbackEnabled
+    });
+    
+    // 🔧 [修复] 增强API配置检查
+    if (this.apiClient && this.apiClient.config) {
+      console.log('🔑 API配置状态:', {
+        hasApiKey: !!this.apiClient.config.apiKey,
+        keyLength: this.apiClient.config.apiKey?.length || 0,
+        apiKeyPreview: this.apiClient.config.apiKey?.substring(0, 8) + '...',
+        model: this.apiClient.config.model,
+        timeout: this.apiClient.config.timeout
+      });
+      
+      // 验证API密钥
+      if (!this.apiClient.config.apiKey || this.apiClient.config.apiKey.length < 10) {
+        throw new Error('API密钥配置无效，无法进行AI分类');
+      }
+    } else {
+      throw new Error('API客户端配置缺失，无法进行AI分类');
+    }
+
+    if (!normalizedContent || !normalizedContent.rawText || normalizedContent.rawText.length < 10) {
       console.error('❌ 内容不足，无法进行分类');
+      console.log('🔍 内容检查详情:', {
+        hasContent: !!normalizedContent,
+        hasRawText: !!(normalizedContent?.rawText),
+        rawTextLength: normalizedContent?.rawText?.length || 0,
+        minRequired: 10,
+        originalContent: content
+      });
       throw new Error('内容不足，无法进行分类');
     }
 
-    // 检查缓存
-    const cacheKey = this.generateCacheKey(content.rawText);
-    if (this.classificationCache.has(cacheKey)) {
-      const cachedResult = this.classificationCache.get(cacheKey);
-      console.log('💾 使用缓存的分类结果:', cachedResult.classificationPath);
-      console.log('🏁 ===== AI分类结束（缓存） =====');
-      return cachedResult;
-    }
+    // 检查缓存 - 已移除，由API客户端统一处理缓存
+    // const cacheKey = this.generateCacheKey(content.rawText);
+    // if (this.classificationCache.has(cacheKey)) {
+    //   const cachedResult = this.classificationCache.get(cacheKey);
+    //   console.log('💾 使用缓存的分类结果:', cachedResult.classificationPath);
+    //   console.log('🏁 ===== AI分类结束（缓存） =====');
+    //   return cachedResult;
+    // }
 
     try {
       console.log('🎯 开始第一步：主类别分类...');
       // 第一步：确定主类别
-      const mainCategoryResult = await this.classifyMainCategory(content);
+      const mainCategoryResult = await this.classifyMainCategory(normalizedContent);
       console.log('✅ 主类别分类完成:', {
         category: mainCategoryResult.category,
         categoryName: mainCategoryResult.categoryName,
@@ -49,7 +139,7 @@ class AIClassifier {
       console.log('🎯 开始第二步：子类别分类...');
       // 第二步：确定子类别
       const subCategoryResult = await this.classifySubCategory(
-        content, 
+        normalizedContent, 
         mainCategoryResult.category
       );
       console.log('✅ 子类别分类完成:', {
@@ -75,7 +165,7 @@ class AIClassifier {
         },
         overallConfidence: (mainCategoryResult.confidence + subCategoryResult.confidence) / 2,
         classificationPath: `${mainCategoryResult.categoryName} > ${subCategoryResult.categoryName}`,
-        contentSummary: content.rawText.substring(0, 100) + (content.rawText.length > 100 ? '...' : ''),
+        contentSummary: normalizedContent.rawText.substring(0, 100) + (normalizedContent.rawText.length > 100 ? '...' : ''),
         timestamp: new Date().toISOString(),
         method: 'ai_two_step'
       };
@@ -87,7 +177,7 @@ class AIClassifier {
         console.warn('❌ 分类结果验证失败:', validation.error);
         if (this.fallbackEnabled) {
           console.log('🔄 启用备用分类方法...');
-          const fallbackResult = this.fallbackClassification(content);
+          const fallbackResult = this.fallbackClassification(normalizedContent);
           console.log('🏁 ===== AI分类结束（备用） =====');
           return fallbackResult;
         }
@@ -95,9 +185,9 @@ class AIClassifier {
       }
 
       console.log('✅ 分类结果验证通过');
-      console.log('💾 缓存分类结果...');
-      // 缓存结果
-      this.classificationCache.set(cacheKey, finalResult);
+      // 缓存结果 - 已移除，由API客户端统一处理缓存
+      // console.log('💾 缓存分类结果...');
+      // this.classificationCache.set(cacheKey, finalResult);
       
       console.log('🎉 AI分类成功完成!');
       console.log('📊 最终结果:', {
@@ -111,12 +201,23 @@ class AIClassifier {
 
     } catch (error) {
       console.error('❌ AI分类失败:', error);
+      console.log('🔍 错误详情分析:', {
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack?.substring(0, 300),
+        hasApiClient: !!this.apiClient,
+        hasCategorySchema: !!this.categorySchema
+      });
       
       if (this.fallbackEnabled) {
         console.log('🔄 使用备用分类方法...');
-        const fallbackResult = this.fallbackClassification(content);
-        console.log('🏁 ===== AI分类结束（备用） =====');
-        return fallbackResult;
+        try {
+          const fallbackResult = this.fallbackClassification(normalizedContent);
+          console.log('🏁 ===== AI分类结束（备用） =====');
+          return fallbackResult;
+        } catch (fallbackError) {
+          console.error('❌ 备用分类也失败:', fallbackError);
+        }
       }
       
       console.log('💥 AI分类完全失败，抛出错误');
@@ -171,13 +272,25 @@ ${categoryList}
       }
     ];
 
-    const response = await this.apiClient.chatCompletion(messages, {
-      temperature: 0.3,
-      max_tokens: 500
+    console.log('📝 主类别分类 - 完整请求内容:', {
+      messagesCount: messages.length,
+      systemPrompt: messages[0].content,
+      userPrompt: messages[1].content.substring(0, 200) + '...',
+      fullPromptLength: messages[1].content.length
     });
 
+    const response = await this.apiClient.chatCompletion(messages);
+
     console.log('📥 主类别分类 - API响应收到');
-    console.log('🔤 主类别分类 - 原始响应:', response.choices[0].message.content);
+    console.log('🔤 主类别分类 - 完整API响应:', {
+      hasResponse: !!response,
+      hasChoices: !!response?.choices,
+      choicesLength: response?.choices?.length || 0,
+      fullResponse: response,
+      messageContent: response?.choices?.[0]?.message?.content || 'N/A'
+    });
+    console.log('📝 主类别分类 - 原始响应内容:');
+    console.log(response.choices[0].message.content);
     
     const result = this.parseClassificationResponse(response.choices[0].message.content, 'main');
     console.log('✅ 主类别分类 - 解析完成');
@@ -242,13 +355,26 @@ ${categoryList}
       }
     ];
 
-    const response = await this.apiClient.chatCompletion(messages, {
-      temperature: 0.2,
-      max_tokens: 400
+    console.log('📝 子类别分类 - 完整请求内容:', {
+      messagesCount: messages.length,
+      mainCategory: mainCategory,
+      systemPrompt: messages[0].content,
+      userPrompt: messages[1].content.substring(0, 200) + '...',
+      fullPromptLength: messages[1].content.length
     });
 
+    const response = await this.apiClient.chatCompletion(messages);
+
     console.log('📥 子类别分类 - API响应收到');
-    console.log('🔤 子类别分类 - 原始响应:', response.choices[0].message.content);
+    console.log('🔤 子类别分类 - 完整API响应:', {
+      hasResponse: !!response,
+      hasChoices: !!response?.choices,
+      choicesLength: response?.choices?.length || 0,
+      fullResponse: response,
+      messageContent: response?.choices?.[0]?.message?.content || 'N/A'
+    });
+    console.log('📝 子类别分类 - 原始响应内容:');
+    console.log(response.choices[0].message.content);
     
     const result = this.parseClassificationResponse(response.choices[0].message.content, 'sub');
     console.log('✅ 子类别分类 - 解析完成');
@@ -430,7 +556,8 @@ ${categoryList}
           return await this.classifyContent(content);
         } catch (error) {
           console.error(`批次${i + index}分类失败:`, error);
-          return this.fallbackClassification(content);
+          const normalizedContent = this.normalizeContentData(content);
+          return this.fallbackClassification(normalizedContent);
         }
       });
       
@@ -446,12 +573,12 @@ ${categoryList}
     return results;
   }
 
-  // 生成缓存键
-  generateCacheKey(text) {
-    // 使用文本的哈希值作为缓存键
-    const normalized = text.toLowerCase().replace(/\s+/g, ' ').substring(0, 200);
-    return btoa(encodeURIComponent(normalized)).substring(0, 32);
-  }
+  // 生成缓存键 - 已禁用，由API客户端统一处理缓存
+  // generateCacheKey(text) {
+  //   // 使用文本的哈希值作为缓存键
+  //   const normalized = text.toLowerCase().replace(/\s+/g, ' ').substring(0, 200);
+  //   return btoa(encodeURIComponent(normalized)).substring(0, 32);
+  // }
 
   // 设置配置
   setConfig(config) {

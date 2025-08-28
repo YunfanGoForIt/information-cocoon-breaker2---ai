@@ -39,7 +39,61 @@ function recordRecentActivity(tags) {
 function analyzePlatformPage() {
   console.log('🎯 ===== 平台页面分析触发 =====');
   
+  // 🔧 [调试功能] 在全局作用域中添加调试函数
+  if (typeof window !== 'undefined' && !window.clearAICache) {
+    window.clearAICache = function() {
+      console.log('🧹 [调试] 用户手动清除AI缓存...');
+      chrome.runtime.sendMessage({action: "clearAICache"}, (response) => {
+        if (response && response.status === 'success') {
+          console.log('✅ [调试] 缓存清除成功:', response.message);
+        } else {
+          console.error('❌ [调试] 缓存清除失败:', response);
+        }
+      });
+    };
+    
+    // 🔧 [调试功能] 添加AI分类测试函数
+    window.testAIClassification = function() {
+      console.log('🎯 [调试] 用户手动测试AI分类...');
+      
+      // 获取当前页面内容
+      const testContent = {
+        title: document.title || '测试标题',
+        description: '这是一个手动测试的内容',
+        tags: ['测试', '调试'],
+        platform: 'test',
+        rawText: document.title + ' 这是一个手动测试的内容，用于验证AI分类功能是否正常工作。'
+      };
+      
+      chrome.runtime.sendMessage({
+        action: "debugAIClassification",
+        testContent: testContent
+      }, (response) => {
+        console.log('📊 [调试] AI分类测试结果:', response);
+        if (response && response.success) {
+          console.log('✅ [调试] AI分类测试成功:', {
+            duration: response.duration + 'ms',
+            classification: response.classification
+          });
+        } else {
+          console.error('❌ [调试] AI分类测试失败:', response.error);
+        }
+      });
+    };
+    
+    console.log('🔧 [调试] 在控制台中输入以下命令进行调试:');
+    console.log('  - clearAICache() - 清除AI缓存');
+    console.log('  - testAIClassification() - 测试AI分类功能');
+  }
+  
   const currentUrl = window.location.href;
+  
+  // 检查是否为主页/信息流页面，如果是则直接跳过
+  if (isHomepageOrFeed(currentUrl)) {
+    console.log('🏠 检测到主页/信息流页面，跳过分析');
+    console.log('🌐 页面URL:', currentUrl);
+    return;
+  }
   
   // 检查是否正在分析中
   if (analysisState.analysisInProgress) {
@@ -91,7 +145,7 @@ function analyzePlatformPage() {
 }
 
 // 使用新提取器分析页面
-function analyzePageWithExtractor(platform) {
+async function analyzePageWithExtractor(platform) {
   console.log('🔍 ===== 页面分析开始 =====');
   console.log('📍 当前平台:', platform);
   console.log('🌐 当前页面:', window.location.href);
@@ -134,6 +188,26 @@ function analyzePageWithExtractor(platform) {
       console.log('✅ 内容质量达标，准备AI分类...');
       console.log('🚀 发送数据到背景脚本进行AI分类...');
       
+      // 先检查背景脚本的AI系统状态
+      console.log('🔍 检查背景脚本AI系统状态...');
+      try {
+        const statusCheck = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({
+            action: "getAISystemStatus"
+          }, (statusResponse) => {
+            if (chrome.runtime.lastError) {
+              console.error('❌ 状态检查失败:', chrome.runtime.lastError.message);
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
+            console.log('📊 AI系统状态:', statusResponse);
+            resolve(statusResponse);
+          });
+        });
+      } catch (statusError) {
+        console.warn('⚠️ 无法获取AI系统状态:', statusError.message);
+      }
+      
       // 准备发送给AI分类的数据
       const behaviorData = {
         platform: extractedContent.platform,
@@ -152,46 +226,159 @@ function analyzePageWithExtractor(platform) {
         url: behaviorData.url
       });
       
-      // 发送给背景脚本
-      chrome.runtime.sendMessage({
-        action: "recordBehaviorWithAI",
-        data: behaviorData
-      }, (response) => {
-        console.log('📥 收到背景脚本响应:', response);
-        
-        if (response && response.classification) {
-          console.log('🎉 AI分类成功!');
-          console.log('📋 AI分类结果:', {
-            classificationPath: response.classification.classificationPath,
-            confidence: response.classification.overallConfidence,
-            method: response.classification.method
-          });
-          
-          // 更新用户活动记录
-          const aiTags = [
-            response.classification.mainCategory.name,
-            response.classification.subCategory.name
-          ];
-          console.log('🏷️ 更新用户活动记录:', aiTags);
-          recordRecentActivity(aiTags);
-        } else {
-          console.log('⚠️ AI分类失败或无分类结果，降级到传统方法');
-          // 降级到传统标签提取
-          const legacyTags = extractLegacyTags(extractedContent);
-          if (legacyTags.length > 0) {
-            console.log('🏷️ 使用传统标签:', legacyTags);
-            recordRecentActivity(legacyTags);
-            chrome.runtime.sendMessage({
-              action: "recordBehavior",
-              data: {
-                platform: extractedContent.platform,
-                action: "view",
-                tags: legacyTags
-              }
-            });
+      // 发送给背景脚本，设置超时控制
+      console.log('⏰ 开始AI分类，设置60秒超时...');
+      const startTime = Date.now();
+      let timeoutId;
+      let responseReceived = false;
+      
+      console.log('📋 详细分析发送的数据:');
+      console.log('🎯 平台:', behaviorData.platform);
+      console.log('📝 内容标题:', behaviorData.extractedContent.title);
+      console.log('📄 内容描述:', behaviorData.extractedContent.description?.substring(0, 100) + '...');
+      console.log('📊 内容质量:', behaviorData.qualityScore);
+      console.log('🌐 页面URL:', behaviorData.url);
+      console.log('📦 原始文本长度:', behaviorData.extractedContent.rawText?.length || 0);
+      
+      // 设置超时处理
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          if (!responseReceived) {
+            console.error('⏰ AI分类超时（60秒），强制降级');
+            reject(new Error('AI分类超时'));
           }
-        }
+        }, 60000); // 60秒超时
+      });
+      
+      // 发送消息的Promise
+      const messagePromise = new Promise((resolve, reject) => {
+        console.log('🚀 向background.js发送recordBehaviorWithAI消息...');
+        console.log('📤 发送的完整数据结构:', JSON.stringify({
+          action: "recordBehaviorWithAI",
+          data: behaviorData
+        }, null, 2));
         
+        chrome.runtime.sendMessage({
+          action: "recordBehaviorWithAI",
+          data: behaviorData
+        }, (response) => {
+          responseReceived = true;
+          clearTimeout(timeoutId);
+          const elapsed = Date.now() - startTime;
+          console.log(`⏱️ AI分类响应时间: ${elapsed}ms`);
+          
+          if (chrome.runtime.lastError) {
+            console.error('❌ Chrome runtime错误:', chrome.runtime.lastError);
+            console.error('🔍 Runtime错误详情:', {
+              message: chrome.runtime.lastError.message,
+              extensionId: chrome.runtime.id,
+              timestamp: new Date().toISOString()
+            });
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          
+          console.log('📥 收到背景脚本响应:');
+          console.log('🔍 响应类型:', typeof response);
+          console.log('📋 响应结构分析:', {
+            hasResponse: !!response,
+            responseKeys: response ? Object.keys(response) : [],
+            responseType: typeof response,
+            isNull: response === null,
+            isUndefined: response === undefined
+          });
+          console.log('📄 完整响应内容:', JSON.stringify(response, null, 2));
+          
+          // 详细分析响应状态
+          if (response) {
+            console.log('✅ 有响应对象');
+            console.log('📊 响应状态:', response.status);
+            console.log('🎯 是否有分类结果:', !!response.classification);
+            console.log('🏷️ 是否有标签:', !!response.tags);
+            
+            if (response.classification) {
+              console.log('🎉 AI分类数据详情:', {
+                hasMainCategory: !!response.classification.mainCategory,
+                hasSubCategory: !!response.classification.subCategory,
+                classificationPath: response.classification.classificationPath,
+                confidence: response.classification.overallConfidence,
+                method: response.classification.method
+              });
+            } else {
+              console.log('⚠️ 无AI分类结果，分析原因:', {
+                status: response.status,
+                error: response.error || '无错误信息',
+                tags: response.tags || '无标签',
+                hasClassificationField: 'classification' in response
+              });
+            }
+          } else {
+            console.error('❌ 响应为空或null!');
+          }
+          
+          resolve(response);
+        });
+      });
+      
+      // 使用Promise.race处理超时
+      Promise.race([messagePromise, timeoutPromise])
+        .then((response) => {
+          if (response && response.classification) {
+            console.log('🎉 AI分类成功!');
+            console.log('📋 AI分类结果:', {
+              classificationPath: response.classification.classificationPath,
+              confidence: response.classification.overallConfidence,
+              method: response.classification.method
+            });
+            
+            // 更新用户活动记录
+            const aiTags = [
+              response.classification.mainCategory.name,
+              response.classification.subCategory.name
+            ];
+            console.log('🏷️ 更新用户活动记录:', aiTags);
+            recordRecentActivity(aiTags);
+          } else {
+            console.log('⚠️ AI分类失败或无分类结果，降级到传统方法');
+            console.log('🔍 响应状态分析:', {
+              hasResponse: !!response,
+              responseStatus: response?.status,
+              hasClassification: !!(response?.classification),
+              responseKeys: response ? Object.keys(response) : []
+            });
+            // 降级到传统标签提取
+            handleFallbackClassification(extractedContent);
+          }
+          
+          finishAnalysis();
+        })
+        .catch((error) => {
+          console.error('❌ AI分类过程出错:', error);
+          console.log('🔄 由于错误降级到传统方法');
+          // 降级到传统标签提取
+          handleFallbackClassification(extractedContent);
+          finishAnalysis();
+        });
+        
+      // 提取公共的降级处理逻辑
+      function handleFallbackClassification(content) {
+        const legacyTags = extractLegacyTags(content);
+        if (legacyTags.length > 0) {
+          console.log('🏷️ 使用传统标签:', legacyTags);
+          recordRecentActivity(legacyTags);
+          chrome.runtime.sendMessage({
+            action: "recordBehavior",
+            data: {
+              platform: content.platform,
+              action: "view",
+              tags: legacyTags
+            }
+          });
+        }
+      }
+      
+      // 提取公共的分析结束逻辑
+      function finishAnalysis() {
         // 检查是否为静态页面，如果是则标记为已分析
         if (isStaticPagePattern(window.location.href)) {
           console.log('📄 检测到静态页面，标记为已分析');
@@ -200,7 +387,7 @@ function analyzePageWithExtractor(platform) {
         
         console.log('🏁 ===== 页面分析结束 =====');
         resetAnalysisState();
-      });
+      }
     } else {
       console.log('❌ 内容质量不足，跳过AI分析');
       console.log('📊 质量评分:', qualityScore.overall, '< 40');
@@ -269,11 +456,60 @@ function resetAnalysisState() {
   analysisState.analysisInProgress = false;
 }
 
+// 检测是否为主页或信息流页面（不应该分析的页面）
+function isHomepageOrFeed(url) {
+  const homepagePatterns = {
+    douyin: [
+      /\/$/,  // 主页
+      /\/recommend/,  // 推荐页
+      /\/following/,  // 关注页
+      /\/foryou/      // For You 页面
+    ],
+    xiaohongshu: [
+      /\/$/,  // 主页
+      /\/explore\?/,  // 探索页面（带参数）
+      /\/explore$/, // 探索页面（不带参数）
+      /\/feed/        // 信息流页面
+    ],
+    youtube: [
+      /\/$/,  // 主页
+      /\/feed\/trending/, // 热门
+      /\/feed\/subscriptions/, // 订阅
+      /\/feed\/library/, // 媒体库
+      /\/results\?search_query=/ // 搜索结果
+    ],
+    kuaishou: [
+      /\/$/,  // 主页
+      /\/feed/,  // 信息流
+      /\/hot/    // 热门
+    ],
+    tiktok: [
+      /\/$/,  // 主页
+      /\/foryou/, // For You
+      /\/following/, // Following
+      /\/trending/   // 热门
+    ]
+  };
+
+  const platform = url.includes("douyin.com") ? "douyin" : 
+                   url.includes("xiaohongshu.com") ? "xiaohongshu" :
+                   url.includes("kuaishou.com") ? "kuaishou" :
+                   url.includes("tiktok.com") ? "tiktok" :
+                   url.includes("youtube.com") ? "youtube" : "unknown";
+
+  if (platform === 'unknown' || !homepagePatterns[platform]) {
+    return false;
+  }
+
+  // 检查是否匹配任何一个主页模式
+  return homepagePatterns[platform].some(pattern => pattern.test(url));
+}
+
 // 检测是否为静态页面（单个帖子/视频页面）
 function isStaticPagePattern(url) {
   const staticPatterns = {
     douyin: [/\/video\/\d+/, /\/note\/\d+/],
-    xiaohongshu: [/\/explore\/.+/, /\/note\/\d+/],
+    xiaohongshu: [/\/explore\/[^?]+/, /\/note\/\d+/], // 修复：只匹配 /explore/帖子ID，不匹配 /explore?参数
     youtube: [/\/watch\?v=[^&]+/, /\/shorts\/[^\/]+/],
     tiktok: [/\/@.+\/video\/\d+/, /\/t\/\w+/],
     kuaishou: [/\/short-video\/\d+/, /\/video\/\d+/]

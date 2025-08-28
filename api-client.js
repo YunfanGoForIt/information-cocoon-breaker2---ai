@@ -1,15 +1,13 @@
-// OpenAI兼容的API客户端
-// 支持多种AI服务的统一接口调用
+// 智谱GLM-4.5 API客户端
+// 专门针对智谱大模型优化的简化版本
 
 class AIApiClient {
   constructor(config = {}) {
     this.config = {
       apiKey: config.apiKey || '',
-      baseUrl: config.baseUrl || 'https://api.openai.com/v1',
-      model: config.model || 'gpt-3.5-turbo',
-      timeout: config.timeout || 30000,
-      maxRetries: config.maxRetries || 3,
-      retryDelay: config.retryDelay || 1000
+      model: config.model || 'glm-4.5',
+      timeout: config.timeout || 60000, // 60秒超时
+      temperature: config.temperature || 0.6
     };
     
     this.requestCache = new Map();
@@ -41,135 +39,188 @@ class AIApiClient {
     return true;
   }
 
-  // 生成缓存键
-  generateCacheKey(messages, options = {}) {
-    const key = JSON.stringify({
-      messages: messages.map(m => ({ role: m.role, content: m.content.substring(0, 100) })),
-      model: options.model || this.config.model,
-      temperature: options.temperature || 0.7
+  // 生成缓存键（使用完整提示词的哈希值）
+  generateCacheKey(messages) {
+    // 构建完整的请求上下文，包括所有消息的完整内容
+    const requestContext = {
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content // 使用完整内容，不截断
+      })),
+      model: this.config.model,
+      temperature: this.config.temperature
+    };
+    
+    // 序列化完整上下文
+    const fullContent = JSON.stringify(requestContext);
+    
+    // 使用SHA-256风格的简单哈希算法
+    const hash = this.generateHash(fullContent);
+    
+    console.log('🔑 缓存键生成:', {
+      contentLength: fullContent.length,
+      hashValue: hash,
+      messagesCount: messages.length,
+      // 显示前100个字符用于调试
+      contentPreview: fullContent.substring(0, 100) + '...'
     });
-    return btoa(encodeURIComponent(key)).substring(0, 50);
+    
+    return hash;
+  }
+  
+  // 生成字符串的哈希值
+  generateHash(str) {
+    let hash = 0;
+    
+    // 如果字符串为空，返回固定值
+    if (str.length === 0) return '0';
+    
+    // 使用改进的哈希算法，避免冲突
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 转换为32位整数
+    }
+    
+    // 转换为正数并用36进制表示（包含0-9和a-z）
+    const hashStr = Math.abs(hash).toString(36);
+    
+    // 添加长度信息以进一步避免冲突
+    const lengthHash = (str.length % 1000).toString(36);
+    
+    return `${hashStr}_${lengthHash}`;
   }
 
-  // 主要的聊天完成接口
+  // 智谱GLM聊天完成接口
   async chatCompletion(messages, options = {}) {
+    console.log('🌐 ===== 智谱GLM API调用开始 =====');
+    console.log('📊 API调用参数:', {
+      messagesCount: messages.length,
+      model: this.config.model,
+      temperature: this.config.temperature
+    });
+    
     this.checkRateLimit();
     
-    // 检查缓存
-    const cacheKey = this.generateCacheKey(messages, options);
-    if (this.requestCache.has(cacheKey)) {
-      console.log('使用缓存结果');
-      return this.requestCache.get(cacheKey);
+    // 🔧 [修复] 完全禁用缓存机制，确保每次都发送真实请求
+    console.log('🔧 [修复] 缓存机制已完全禁用，确保真实API调用');
+    
+    // 验证API配置
+    if (!this.config.apiKey || this.config.apiKey.length < 10) {
+      throw new Error('API密钥配置无效');
     }
-
-    const requestBody = {
-      model: options.model || this.config.model,
-      messages: messages,
-      temperature: options.temperature || 0.7,
-      max_tokens: options.max_tokens || 1000,
-      top_p: options.top_p || 1,
-      frequency_penalty: options.frequency_penalty || 0,
-      presence_penalty: options.presence_penalty || 0
-    };
+    
+    console.log('📤 准备发送智谱GLM请求:', {
+      hasApiKey: !!this.config.apiKey,
+      keyLength: this.config.apiKey?.length || 0,
+      apiKeyPreview: this.config.apiKey?.substring(0, 8) + '...'
+    });
 
     try {
-      const result = await this.makeRequest('/chat/completions', requestBody);
+      const result = await this.callZhipuAPI(messages);
       
-      // 缓存结果
-      this.requestCache.set(cacheKey, result);
+      console.log('✅ 智谱GLM调用成功');
+      console.log('📥 API响应摘要:', {
+        hasChoices: !!result.choices,
+        choicesCount: result.choices?.length || 0,
+        usage: result.usage
+      });
       
-      // 清理过期缓存
-      this.cleanupCache();
+      // 输出完整的响应内容
+      if (result.choices && result.choices[0] && result.choices[0].message) {
+        console.log('📝 智谱GLM响应内容:');
+        console.log(result.choices[0].message.content);
+      }
       
+      console.log('🏁 ===== 智谱GLM调用结束 =====');
       return result;
     } catch (error) {
-      console.error('AI API调用失败:', error);
+      console.error('❌ 智谱GLM调用失败:', error);
+      console.log('🔍 调用错误详情:', {
+        errorName: error.name,
+        errorMessage: error.message,
+        hasApiKey: !!this.config.apiKey,
+        apiKeyLength: this.config.apiKey?.length || 0
+      });
+      console.log('🏁 ===== 智谱GLM调用结束（失败）=====');
       throw error;
     }
   }
 
-  // 执行HTTP请求
-  async makeRequest(endpoint, body, retries = 0) {
-    const url = `${this.config.baseUrl}${endpoint}`;
+  // 调用智谱GLM API的核心方法
+  async callZhipuAPI(messages) {
+    const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    const requestStartTime = Date.now();
     
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.apiKey}`
-      },
-      body: JSON.stringify(body)
-    };
+    console.log('🚀 开始智谱GLM API请求...');
+    console.log(`⏰ 超时设置: ${this.config.timeout}ms`);
 
     // 添加超时处理
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-    requestOptions.signal = controller.signal;
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        const elapsed = Date.now() - requestStartTime;
+        console.warn(`⏰ API请求超时（${elapsed}ms > ${this.config.timeout}ms），取消请求`);
+        controller.abort();
+        reject(new Error(`API请求超时（${elapsed}ms）`));
+      }, this.config.timeout);
+    });
+
+    const fetchPromise = fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.config.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: this.config.model,
+        messages: messages,
+        temperature: this.config.temperature
+      }),
+      signal: controller.signal
+    });
 
     try {
-      const response = await fetch(url, requestOptions);
-      clearTimeout(timeoutId);
+      console.log(`🌐 发送请求到智谱GLM: ${url}`);
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      const elapsed = Date.now() - requestStartTime;
+      console.log(`✅ 请求响应时间: ${elapsed}ms`);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`API请求失败: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`智谱GLM API调用失败: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('API返回数据格式错误');
+        throw new Error('智谱GLM返回数据格式错误');
       }
 
+      console.log(`✅ 智谱GLM请求成功，共耗时: ${elapsed}ms`);
       return data;
     } catch (error) {
-      clearTimeout(timeoutId);
+      const elapsed = Date.now() - requestStartTime;
       
       // 处理中断错误
       if (error.name === 'AbortError') {
-        throw new Error('API请求超时');
+        console.error(`❌ 智谱GLM请求超时（${elapsed}ms）`);
+        throw new Error(`智谱GLM请求超时（${elapsed}ms）`);
       }
       
-      // 重试逻辑
-      if (retries < this.config.maxRetries && this.shouldRetry(error)) {
-        console.log(`第${retries + 1}次重试...`);
-        await this.delay(this.config.retryDelay * (retries + 1));
-        return this.makeRequest(endpoint, body, retries + 1);
-      }
-      
+      console.error('❌ 智谱GLM请求失败:', error);
       throw error;
     }
   }
 
-  // 判断是否应该重试
-  shouldRetry(error) {
-    // 网络错误、超时、5xx错误应该重试
-    if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
-      return true;
-    }
-    
-    if (error.message.includes('API请求失败')) {
-      const statusMatch = error.message.match(/(\d{3})/);
-      if (statusMatch) {
-        const status = parseInt(statusMatch[1]);
-        return status >= 500 || status === 429; // 服务器错误或频率限制
-      }
-    }
-    
-    return false;
-  }
-
-  // 延迟函数
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   // 清理过期缓存
   cleanupCache() {
-    if (this.requestCache.size > 50) { // 保持缓存大小不超过50条
-      const keys = Array.from(this.requestCache.keys());
-      const keysToDelete = keys.slice(0, 20); // 删除最旧的20条
-      keysToDelete.forEach(key => this.requestCache.delete(key));
+    if (this.requestCache.size > 100) { // 保持缓存大小在合理范围
+      const entries = Array.from(this.requestCache.entries());
+      entries.slice(50).forEach(([key]) => {
+        this.requestCache.delete(key);
+      });
     }
   }
 
@@ -187,24 +238,21 @@ class AIApiClient {
     this.requestCache.clear();
   }
 
-  // 测试API连接
+  // 测试智谱GLM连接
   async testConnection() {
     try {
       const testMessages = [
         { role: "user", content: "测试连接，请回复'连接成功'" }
       ];
       
-      const response = await this.chatCompletion(testMessages, {
-        max_tokens: 50,
-        temperature: 0
-      });
+      const response = await this.chatCompletion(testMessages);
       
       const content = response.choices[0].message.content;
       return {
         success: true,
         message: '连接成功',
         response: content,
-        model: response.model
+        model: this.config.model
       };
     } catch (error) {
       return {
@@ -214,128 +262,29 @@ class AIApiClient {
       };
     }
   }
-}
 
-// API配置管理器
-class ApiConfigManager {
-  constructor() {
-    this.configs = new Map();
-    this.activeConfigId = null;
-  }
-
-  // 添加API配置
-  addConfig(id, config) {
-    this.configs.set(id, {
-      id: id,
-      name: config.name || id,
-      ...config,
-      createdAt: new Date().toISOString()
-    });
-  }
-
-  // 获取配置
-  getConfig(id) {
-    return this.configs.get(id);
-  }
-
-  // 设置活跃配置
-  setActiveConfig(id) {
-    if (this.configs.has(id)) {
-      this.activeConfigId = id;
-      return true;
-    }
-    return false;
-  }
-
-  // 获取活跃配置
-  getActiveConfig() {
-    return this.activeConfigId ? this.configs.get(this.activeConfigId) : null;
-  }
-
-  // 获取所有配置
-  getAllConfigs() {
-    return Array.from(this.configs.values());
-  }
-
-  // 删除配置
-  deleteConfig(id) {
-    const deleted = this.configs.delete(id);
-    if (this.activeConfigId === id) {
-      this.activeConfigId = null;
-    }
-    return deleted;
-  }
-
-  // 保存到存储
-  async saveToStorage() {
-    const data = {
-      configs: Object.fromEntries(this.configs),
-      activeConfigId: this.activeConfigId
-    };
-    
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ aiApiConfigs: data });
-    } else {
-      localStorage.setItem('aiApiConfigs', JSON.stringify(data));
-    }
-  }
-
-  // 从存储加载
-  async loadFromStorage() {
-    let data = null;
-    
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get('aiApiConfigs');
-      data = result.aiApiConfigs;
-    } else {
-      const stored = localStorage.getItem('aiApiConfigs');
-      data = stored ? JSON.parse(stored) : null;
+  // 检查API密钥有效性
+  validateApiKey() {
+    if (!this.config.apiKey) {
+      throw new Error('智谱GLM API密钥未配置');
     }
     
-    if (data) {
-      this.configs = new Map(Object.entries(data.configs || {}));
-      this.activeConfigId = data.activeConfigId;
+    if (this.config.apiKey.length < 10) {
+      throw new Error('智谱GLM API密钥格式不正确');
     }
+    
+    return true;
+  }
+
+  // 获取配置信息
+  getConfig() {
+    return { ...this.config };
   }
 }
-
-// 预设配置
-const PRESET_CONFIGS = {
-  openai: {
-    name: 'OpenAI GPT',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-3.5-turbo',
-    description: 'OpenAI官方API'
-  },
-  openai_gpt4: {
-    name: 'OpenAI GPT-4',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-4',
-    description: 'OpenAI GPT-4模型'
-  },
-  claude: {
-    name: 'Anthropic Claude',
-    baseUrl: 'https://api.anthropic.com/v1',
-    model: 'claude-3-sonnet-20240229',
-    description: 'Anthropic Claude模型'
-  },
-  azure_openai: {
-    name: 'Azure OpenAI',
-    baseUrl: 'https://your-resource.openai.azure.com/openai/deployments/your-deployment',
-    model: 'gpt-35-turbo',
-    description: 'Azure OpenAI服务'
-  }
-};
 
 // 导出模块
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    AIApiClient,
-    ApiConfigManager,
-    PRESET_CONFIGS
-  };
+  module.exports = AIApiClient;
 } else if (typeof window !== 'undefined') {
   window.AIApiClient = AIApiClient;
-  window.ApiConfigManager = ApiConfigManager;
-  window.PRESET_CONFIGS = PRESET_CONFIGS;
 }

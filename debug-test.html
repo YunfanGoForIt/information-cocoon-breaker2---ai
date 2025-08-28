@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI分类调试测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI分类调试测试</h1>
+        <p>这个页面用于测试AI分类功能是否正常工作。</p>
+        
+        <div>
+            <button onclick="testAIClassification()">🎯 测试AI分类</button>
+            <button onclick="clearAICache()">🧹 清除缓存</button>
+            <button onclick="getSystemStatus()">📊 系统状态</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${message}`;
+        }
+
+        function testAIClassification() {
+            showResult('正在测试AI分类功能...', 'info');
+            
+            const testContent = {
+                title: 'AI技术发展趋势',
+                description: '探讨人工智能在各个领域的应用前景和挑战',
+                tags: ['AI', '人工智能', '科技'],
+                platform: 'test',
+                rawText: 'AI技术发展趋势 探讨人工智能在各个领域的应用前景和挑战 AI 人工智能 科技'
+            };
+            
+            chrome.runtime.sendMessage({
+                action: "debugAIClassification",
+                testContent: testContent
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    showResult('测试失败: ' + chrome.runtime.lastError.message, 'error');
+                    return;
+                }
+                
+                if (response && response.success) {
+                    showResult(`测试成功！耗时: ${response.duration}ms<br>分类结果: ${response.classification.classificationPath}`, 'success');
+                } else {
+                    showResult('测试失败: ' + (response.error || '未知错误'), 'error');
+                }
+            });
+        }
+
+        function clearAICache() {
+            showResult('正在清除缓存...', 'info');
+            
+            chrome.runtime.sendMessage({action: "clearAICache"}, (response) => {
+                if (chrome.runtime.lastError) {
+                    showResult('清除缓存失败: ' + chrome.runtime.lastError.message, 'error');
+                    return;
+                }
+                
+                if (response && response.status === 'success') {
+                    showResult('缓存清除成功！', 'success');
+                } else {
+                    showResult('清除缓存失败', 'error');
+                }
+            });
+        }
+
+        function getSystemStatus() {
+            showResult('正在获取系统状态...', 'info');
+            
+            chrome.runtime.sendMessage({action: "getAISystemStatus"}, (response) => {
+                if (chrome.runtime.lastError) {
+                    showResult('获取状态失败: ' + chrome.runtime.lastError.message, 'error');
+                    return;
+                }
+                
+                if (response) {
+                    const status = `
+                        API客户端: ${response.aiApiClient ? '✅' : '❌'}<br>
+                        分类器: ${response.aiClassifier ? '✅' : '❌'}<br>
+                        分类模式: ${response.categorySchema ? '✅' : '❌'}<br>
+                        API密钥: ${response.apiConfig?.hasApiKey ? '✅' : '❌'}<br>
+                        模型: ${response.apiConfig?.model || 'N/A'}
+                    `;
+                    showResult(status, 'success');
+                } else {
+                    showResult('无法获取系统状态', 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

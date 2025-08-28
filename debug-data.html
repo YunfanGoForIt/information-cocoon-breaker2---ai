@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插件数据调试器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #555;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .behavior-item {
+            background: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 2px;
+            display: inline-block;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 信息茧房破解器 - 数据调试器</h1>
+        
+        <div class="section">
+            <button onclick="loadAllData()">🔄 刷新数据</button>
+            <button onclick="clearAllData()">🗑️ 清除所有数据</button>
+            <button onclick="exportData()">📄 导出数据</button>
+        </div>
+
+        <div class="section">
+            <h2>📊 统计概览</h2>
+            <div class="stats" id="stats">
+                <!-- 统计数据会在这里显示 -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>👤 用户行为记录</h2>
+            <div id="behaviorData">
+                <p>点击"刷新数据"按钮加载数据...</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 推荐内容</h2>
+            <div id="recommendationsData"></div>
+        </div>
+
+        <div class="section">
+            <h2>🏆 徽章和分数</h2>
+            <div id="badgesData"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 原始数据 (JSON)</h2>
+            <pre id="rawData"></pre>
+        </div>
+    </div>
+
+    <script src="debug-data.js"></script>
+</body>
+</html>

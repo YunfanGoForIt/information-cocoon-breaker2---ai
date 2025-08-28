@@ -1,39 +1,11 @@
-// 预设配置
+// 预设配置 - 只支持智谱GLM-4.5
 const PRESET_CONFIGS = {
-    openai: {
-        name: "OpenAI GPT",
-        baseUrl: "https://api.openai.com/v1",
-        model: "gpt-3.5-turbo",
-        description: "OpenAI官方API，需要科学上网",
-        keyExample: "sk-..."
-    },
     zhipu: {
-        name: "智谱AI GLM",
-        baseUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-        model: "glm-3-turbo",
-        description: "智谱AI，国内访问稳定，支持中文",
-        keyExample: "..."
-    },
-    baidu: {
-        name: "百度文心一言",
-        baseUrl: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions",
-        model: "ERNIE-Bot-turbo",
-        description: "百度文心一言，国内服务",
-        keyExample: "..."
-    },
-    qwen: {
-        name: "阿里通义千问",
-        baseUrl: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
-        model: "qwen-turbo",
-        description: "阿里云通义千问",
-        keyExample: "sk-..."
-    },
-    custom: {
-        name: "自定义服务",
-        baseUrl: "",
-        model: "",
-        description: "自建或第三方代理服务",
-        keyExample: "..."
+        name: "智谱AI GLM-4.5",
+        baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+        model: "glm-4.5",
+        description: "智谱AI GLM-4.5，国内访问稳定，支持中文",
+        keyExample: "xxxx.xxxxxxxxxxxxxxxxx"
     }
 };
 
@@ -69,24 +41,20 @@ function renderPresetConfigs() {
     });
 }
 
-// 使用预设配置
-function usePreset(presetKey) {
-    const config = PRESET_CONFIGS[presetKey];
-    if (!config) return;
+// 使用智谱GLM配置
+function usePreset(presetKey = 'zhipu') {
+    const config = PRESET_CONFIGS.zhipu; // 只使用智谱配置
     
-    document.getElementById('apiProvider').value = presetKey;
+    document.getElementById('apiProvider').value = 'zhipu';
     document.getElementById('baseUrl').value = config.baseUrl;
     document.getElementById('model').value = config.model;
     
     showStatus(`已应用 ${config.name} 配置，请输入您的API密钥`, 'success');
 }
 
-// 提供商变化时更新表单
+// 提供商变化时更新表单 - 固定使用智谱
 function onProviderChange() {
-    const provider = document.getElementById('apiProvider').value;
-    if (provider && PRESET_CONFIGS[provider]) {
-        usePreset(provider);
-    }
+    usePreset('zhipu'); // 强制使用智谱配置
 }
 
 // 切换AI配置显示
@@ -126,14 +94,12 @@ async function loadCurrentConfig() {
     }
 }
 
-// 查找匹配的提供商
+// 查找匹配的提供商 - 只支持智谱
 function findMatchingProvider(config) {
-    for (const [key, preset] of Object.entries(PRESET_CONFIGS)) {
-        if (config.baseUrl && config.baseUrl.includes(preset.baseUrl.split('/')[2])) {
-            return key;
-        }
+    if (config.baseUrl && config.baseUrl.includes('bigmodel.cn')) {
+        return 'zhipu';
     }
-    return '';
+    return 'zhipu'; // 默认返回智谱
 }
 
 // 保存配置
