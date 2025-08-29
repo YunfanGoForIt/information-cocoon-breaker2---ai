@@ -48,9 +48,6 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "category-schema.js",
-        "api-client.js",
-        "ai-classifier.js",
         "content-extractor.js"
       ],
       "matches": ["<all_urls>"]

@@ -17,7 +17,7 @@ function initPopup() {
 function loadUserData() {
   chrome.storage.local.get(["diversityScore", "badges", "thresholdPercentage"], (result) => {
     const diversityScore = result.diversityScore || 0;
-    const badges = result.badges || ["新手探索者"];
+    const badges = result.badges || ["Novice Explorer"];
     const thresholdPercentage = result.thresholdPercentage || 70;
     
     // 更新多样性分数
@@ -41,7 +41,7 @@ function renderRecommendations(recommendations) {
   container.innerHTML = "";
   
   if (recommendations.length === 0) {
-    container.innerHTML = '<div class="recommendation-item">暂无推荐内容</div>';
+    container.innerHTML = '<div class="recommendation-item">No recommendations available</div>';
     return;
   }
   
@@ -143,7 +143,7 @@ function initThresholdSlider() {
   slider.addEventListener('change', (e) => {
     const value = parseInt(e.target.value);
     ThresholdConfigManager.setThreshold(value).then(() => {
-      console.log(`阈值已更新为: ${value}%`);
+      console.log(`Threshold updated to: ${value}%`);
     });
   });
 }
@@ -157,16 +157,16 @@ function updateThresholdDisplay(percentage) {
   slider.value = percentage;
   valueElement.textContent = percentage;
   
-  // 更新描述文字
+  // Update threshold description
   let desc;
   if (percentage <= 40) {
-    desc = "高敏感 - 经常提醒探索";
+    desc = "High Sensitivity - Frequent reminders to explore";
   } else if (percentage <= 60) {
-    desc = "适中敏感 - 平衡提醒";
+    desc = "Moderate Sensitivity - Balanced reminders";
   } else if (percentage <= 80) {
-    desc = "默认敏感 - 标准提醒";
+    desc = "Default Sensitivity - Standard reminders";
   } else {
-    desc = "低敏感 - 较少提醒";
+    desc = "Low Sensitivity - Fewer reminders";
   }
   
   descElement.textContent = desc;
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashboardBtn = document.getElementById('dashboard-btn');
   if (dashboardBtn) {
     dashboardBtn.addEventListener('click', function() {
-      // 在新标签页中打开数据仪表板
+      // Open data dashboard in new tab
       chrome.tabs.create({
         url: chrome.runtime.getURL('dashboard.html')
       });
