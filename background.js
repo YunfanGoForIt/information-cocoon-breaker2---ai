@@ -1239,8 +1239,8 @@ function getDefaultRecommendations(tags) {
     // 如果收集的关键词不够，添加一些通用推荐
     while (defaultRecommendations.length < 4) {
       const fallbackKeywords = [
-        "ChatGPT使用技巧", "故宫文物修复", "量子物理实验", "心理咨询技巧",
-        "家常菜制作", "旅游攻略制作", "高效学习方法", "创业经验分享"
+        "ChatGPT Usage Tips", "Palace Artifact Restoration", "Quantum Physics Experiments", "Psychological Counseling Techniques",
+        "Home Cooking Recipes", "Travel Guide Creation", "Efficient Learning Methods", "Entrepreneurship Experience Sharing"
       ];
       const randomFallback = fallbackKeywords[Math.floor(Math.random() * fallbackKeywords.length)];
       if (!defaultRecommendations.includes(randomFallback)) {

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>信息茧房插件 - 数据可视化仪表板</title>
+    <title>Information Cocoon Breaker - Data Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -338,83 +338,83 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 信息茧房插件数据仪表板</h1>
-            <p>实时监控您的信息消费模式和多样性评分</p>
+            <h1>📊 Information Cocoon Breaker Dashboard</h1>
+            <p>Monitor your information consumption patterns and diversity scores in real-time</p>
         </div>
 
-        <button class="refresh-btn" onclick="loadData()">🔄 刷新数据</button>
+        <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
 
         <div id="loading" class="loading">
-            <div>正在加载数据...</div>
+            <div>Loading data...</div>
         </div>
 
         <div id="content" style="display: none;">
-            <!-- 统计卡片 -->
+            <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>总浏览记录</h3>
+                    <h3>Total Browsing Records</h3>
                     <div class="value" id="totalRecords">0</div>
-                    <div class="description">累计浏览的内容数量</div>
+                    <div class="description">Total amount of content browsed</div>
                 </div>
                 <div class="stat-card">
-                    <h3>多样性评分</h3>
+                    <h3>Diversity Score</h3>
                     <div class="value diversity-score" id="diversityScore">0</div>
-                    <div class="description">信息消费多样性指数</div>
+                    <div class="description">Information consumption diversity index</div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="diversityProgress" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <h3>活跃平台</h3>
+                    <h3>Active Platforms</h3>
                     <div class="value" id="activePlatforms">0</div>
-                    <div class="description">使用的不同平台数量</div>
+                    <div class="description">Number of different platforms used</div>
                 </div>
                 <div class="stat-card">
-                    <h3>获得徽章</h3>
+                    <h3>Earned Badges</h3>
                     <div class="value" id="totalBadges">0</div>
-                    <div class="description">累计获得的成就徽章</div>
+                    <div class="description">Total achievement badges earned</div>
                 </div>
             </div>
 
-            <!-- 图表区域 -->
+            <!-- Charts Section -->
             <div class="charts-section">
                 <div class="chart-container">
-                    <h3>平台使用分布</h3>
+                    <h3>Platform Usage Distribution</h3>
                     <div id="platformChart" class="pie-chart">
                         <div class="pie-center" id="platformTotal">0</div>
                     </div>
                     <div id="platformLegend" class="pie-legend"></div>
                 </div>
                 <div class="chart-container">
-                    <h3>内容分类分布</h3>
+                    <h3>Content Category Distribution</h3>
                     <div id="categoryChart" class="simple-chart"></div>
                 </div>
             </div>
 
             <div class="charts-section">
                 <div class="chart-container">
-                    <h3>时间趋势分析</h3>
+                    <h3>Time Trend Analysis</h3>
                     <div id="trendChart" class="simple-chart"></div>
                 </div>
                 <div class="chart-container">
-                    <h3>标签云分析</h3>
+                    <h3>Tag Cloud Analysis</h3>
                     <div id="tagChart" class="tag-cloud"></div>
                 </div>
             </div>
 
-            <!-- 详细数据表格 -->
+            <!-- Detailed Data Tables -->
             <div class="data-section">
-                <h3>📋 最近浏览记录</h3>
+                <h3>📋 Recent Browsing Records</h3>
                 <div id="behaviorTable"></div>
             </div>
 
             <div class="data-section">
-                <h3>🏆 成就徽章</h3>
+                <h3>🏆 Achievement Badges</h3>
                 <div id="badgesSection"></div>
             </div>
 
             <div class="data-section">
-                <h3>💡 智能推荐</h3>
+                <h3>💡 Smart Recommendations</h3>
                 <div id="recommendationsSection"></div>
             </div>
         </div>

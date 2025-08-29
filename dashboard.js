@@ -1,14 +1,14 @@
-// 数据可视化仪表板 JavaScript - 真实数据版本
+// Data Visualization Dashboard JavaScript - Real Data Version
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
 });
 
-// 加载所有数据
+// Load all data
 async function loadData() {
     try {
         showLoading(true);
         
-        // 获取所有存储的数据
+        // Get all stored data
         const data = await new Promise((resolve, reject) => {
             if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
                 chrome.storage.local.get([
@@ -25,7 +25,7 @@ async function loadData() {
                     }
                 });
             } else {
-                // 如果不在扩展环境中，显示提示信息
+                // If not in extension environment, show prompt message
                 resolve({
                     userBehavior: [],
                     diversityScore: 0,
@@ -36,14 +36,14 @@ async function loadData() {
             }
         });
         
-        // 处理数据
+        // Process data
         const userBehavior = data.userBehavior || [];
         const diversityScore = data.diversityScore || 0;
         const badges = data.badges || [];
         const recommendations = data.recommendations || [];
         const classificationStats = data.classificationStats || {};
         
-        console.log('加载的真实数据:', {
+        console.log('Loaded real data:', {
             userBehaviorCount: userBehavior.length,
             diversityScore,
             badgesCount: badges.length,
@@ -51,23 +51,23 @@ async function loadData() {
             classificationStats
         });
         
-        // 如果没有数据，显示提示信息
+        // If no data, show prompt message
         if (userBehavior.length === 0) {
             showEmptyDataMessage();
             showLoading(false);
             return;
         }
         
-        // 更新统计卡片
+        // Update statistics cards
         updateStatsCards(userBehavior, diversityScore, badges);
         
-        // 渲染图表
+        // Render charts
         renderPlatformChart(userBehavior);
         renderCategoryChart(userBehavior, classificationStats);
         renderTrendChart(userBehavior);
         renderTagChart(userBehavior);
         
-        // 渲染详细数据
+        // Render detailed data
         renderBehaviorTable(userBehavior);
         renderBadgesSection(badges);
         renderRecommendationsSection(recommendations);
@@ -75,38 +75,38 @@ async function loadData() {
         showLoading(false);
         
     } catch (error) {
-        console.error('加载数据失败:', error);
-        showError('加载数据失败: ' + error.message);
+        console.error('Failed to load data:', error);
+        showError('Failed to load data: ' + error.message);
         showLoading(false);
     }
 }
 
-// 显示空数据提示
+// Show empty data prompt
 function showEmptyDataMessage() {
     const contentElement = document.getElementById('content');
     contentElement.innerHTML = `
         <div style="text-align: center; padding: 50px; color: white;">
-            <h2 style="margin-bottom: 20px;">📊 暂无数据</h2>
-            <p style="margin-bottom: 15px;">您还没有使用信息茧房插件浏览内容</p>
-            <p style="margin-bottom: 20px;">请先在支持的平台（如B站、知乎、微博等）上浏览一些内容</p>
-            <button class="refresh-btn" onclick="loadData()">🔄 重新检查数据</button>
+            <h2 style="margin-bottom: 20px;">📊 No Data Available</h2>
+            <p style="margin-bottom: 15px;">You haven't used the Information Cocoon Breaker plugin to browse content yet</p>
+            <p style="margin-bottom: 20px;">Please browse some content on supported platforms (such as Bilibili, Zhihu, Weibo, etc.) first</p>
+            <button class="refresh-btn" onclick="loadData()">🔄 Recheck Data</button>
         </div>
     `;
     contentElement.style.display = 'block';
 }
 
-// 更新统计卡片
+// Update statistics cards
 function updateStatsCards(userBehavior, diversityScore, badges) {
-    // 总浏览记录
+    // Total browsing records
     document.getElementById('totalRecords').textContent = userBehavior.length;
     
-    // 多样性评分
+    // Diversity score
     const diversityElement = document.getElementById('diversityScore');
     const progressElement = document.getElementById('diversityProgress');
     diversityElement.textContent = Math.round(diversityScore);
     progressElement.style.width = diversityScore + '%';
     
-    // 根据评分设置颜色
+    // Set color based on score
     diversityElement.className = 'value diversity-score';
     if (diversityScore >= 80) {
         diversityElement.classList.add('score-excellent');
@@ -116,11 +116,11 @@ function updateStatsCards(userBehavior, diversityScore, badges) {
         diversityElement.classList.add('score-poor');
     }
     
-    // 活跃平台数量
+    // Number of active platforms
     const platforms = new Set(userBehavior.map(record => record.platform).filter(Boolean));
     document.getElementById('activePlatforms').textContent = platforms.size;
     
-    // 徽章数量
+    // Number of badges
     document.getElementById('totalBadges').textContent = badges.length;
 }
 
@@ -222,7 +222,7 @@ function renderCategoryChart(userBehavior, classificationStats) {
     const chartContainer = document.getElementById('categoryChart');
     
     if (categoryData.length === 0) {
-        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">暂无分类数据</p>';
+        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">No category data</p>';
         return;
     }
     
@@ -325,7 +325,7 @@ function renderTagChart(userBehavior) {
     const chartContainer = document.getElementById('tagChart');
     
     if (tagData.length === 0) {
-        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">暂无标签数据</p>';
+        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">No tag data</p>';
         return;
     }
     
@@ -347,7 +347,7 @@ function renderBehaviorTable(userBehavior) {
     const tableContainer = document.getElementById('behaviorTable');
     
     if (userBehavior.length === 0) {
-        tableContainer.innerHTML = '<p style="color: #666; text-align: center;">暂无浏览记录</p>';
+        tableContainer.innerHTML = '<p style="color: #666; text-align: center;">No browsing records</p>';
         return;
     }
     
@@ -357,10 +357,10 @@ function renderBehaviorTable(userBehavior) {
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>时间</th>
-                    <th>平台</th>
-                    <th>操作</th>
-                    <th>标签</th>
+                    <th>Time</th>
+                    <th>Platform</th>
+                    <th>Action</th>
+                    <th>Tags</th>
                     <th>URL</th>
                 </tr>
             </thead>
@@ -368,12 +368,12 @@ function renderBehaviorTable(userBehavior) {
     `;
     
     recentRecords.forEach(record => {
-        const timestamp = record.timestamp ? new Date(record.timestamp).toLocaleString('zh-CN') : '未知';
-        const platform = record.platform || '未知';
-        const action = record.action || '浏览';
+        const timestamp = record.timestamp ? new Date(record.timestamp).toLocaleString('en-US') : 'Unknown';
+        const platform = record.platform || 'Unknown';
+        const action = record.action || 'Browse';
         const tags = record.tags && record.tags.length > 0 
             ? record.tags.map(tag => `<span class="tag">${tag}</span>`).join('')
-            : '无标签';
+            : 'No tags';
         const url = record.url || '#';
         
         tableHTML += `
@@ -382,7 +382,7 @@ function renderBehaviorTable(userBehavior) {
                 <td><span class="platform-badge platform-${platform.toLowerCase()}">${platform}</span></td>
                 <td>${action}</td>
                 <td>${tags}</td>
-                <td><a href="${url}" target="_blank" style="color: #667eea; text-decoration: none;">查看</a></td>
+                <td><a href="${url}" target="_blank" style="color: #667eea; text-decoration: none;">View</a></td>
             </tr>
         `;
     });
@@ -396,7 +396,7 @@ function renderBadgesSection(badges) {
     const badgesContainer = document.getElementById('badgesSection');
     
     if (badges.length === 0) {
-        badgesContainer.innerHTML = '<p style="color: #666; text-align: center;">暂无获得徽章</p>';
+        badgesContainer.innerHTML = '<p style="color: #666; text-align: center;">No badges earned</p>';
         return;
     }
     
@@ -409,7 +409,7 @@ function renderBadgesSection(badges) {
                 <div style="font-weight: bold; margin-bottom: 5px;">${badge.name}</div>
                 <div style="color: #666; font-size: 0.9rem;">${badge.description || ''}</div>
                 <div style="color: #999; font-size: 0.8rem; margin-top: 5px;">
-                    ${badge.earnedAt ? new Date(badge.earnedAt).toLocaleDateString('zh-CN') : ''}
+                    ${badge.earnedAt ? new Date(badge.earnedAt).toLocaleDateString('en-US') : ''}
                 </div>
             </div>
         `;
@@ -424,7 +424,7 @@ function renderRecommendationsSection(recommendations) {
     const recommendationsContainer = document.getElementById('recommendationsSection');
     
     if (recommendations.length === 0) {
-        recommendationsContainer.innerHTML = '<p style="color: #666; text-align: center;">暂无推荐内容</p>';
+        recommendationsContainer.innerHTML = '<p style="color: #666; text-align: center;">No recommendations</p>';
         return;
     }
     
@@ -433,7 +433,7 @@ function renderRecommendationsSection(recommendations) {
     recommendations.forEach((recommendation, index) => {
         recommendationsHTML += `
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
-                <div style="font-size: 1.2rem; margin-bottom: 10px;">💡 推荐 ${index + 1}</div>
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">💡 Recommendation ${index + 1}</div>
                 <div style="font-weight: bold;">${recommendation}</div>
             </div>
         `;
@@ -446,13 +446,13 @@ function renderRecommendationsSection(recommendations) {
 // 获取分类显示名称
 function getCategoryDisplayName(category) {
     const categoryNames = {
-        'technology': '科技创新',
-        'culture_arts': '文化艺术',
-        'science_exploration': '科学探索',
-        'society_humanity': '社会人文',
-        'lifestyle': '生活方式',
-        'education_growth': '教育成长',
-        'business_finance': '商业财经'
+        'technology': 'Technology Innovation',
+        'culture_arts': 'Culture & Arts',
+        'science_exploration': 'Science Exploration',
+        'society_humanity': 'Society & Humanities',
+        'lifestyle': 'Lifestyle',
+        'education_growth': 'Education & Growth',
+        'business_finance': 'Business & Finance'
     };
     
     return categoryNames[category] || category;
