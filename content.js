@@ -2,6 +2,15 @@
 let contentExtractor;
 let recentTopics = [];
 
+// 检查扩展上下文是否有效
+function isExtensionContextValid() {
+  try {
+    return chrome.runtime && chrome.runtime.id && !chrome.runtime.lastError;
+  } catch (error) {
+    return false;
+  }
+}
+
 // 防重复分析机制
 let analysisState = {
   lastAnalyzedUrl: '',
@@ -186,6 +195,15 @@ async function analyzePageWithExtractor(platform) {
     // 如果内容质量足够，发送给背景脚本进行AI分类
     if (qualityScore.overall >= 40) {
       console.log('✅ 内容质量达标，准备AI分类...');
+      
+      // 检查扩展上下文是否有效
+      if (!isExtensionContextValid()) {
+        console.warn('⚠️ 扩展上下文无效，降级到传统方法');
+        handleFallbackClassification(extractedContent);
+        finishAnalysis();
+        return;
+      }
+      
       console.log('🚀 发送数据到背景脚本进行AI分类...');
       
       // 先检查背景脚本的AI系统状态
@@ -257,6 +275,12 @@ async function analyzePageWithExtractor(platform) {
           action: "recordBehaviorWithAI",
           data: behaviorData
         }, null, 2));
+        
+        // 发送前再次检查扩展上下文
+        if (!isExtensionContextValid()) {
+          reject(new Error('Extension context invalidated before sending message'));
+          return;
+        }
         
         chrome.runtime.sendMessage({
           action: "recordBehaviorWithAI",
@@ -375,12 +399,23 @@ async function analyzePageWithExtractor(platform) {
         if (legacyTags.length > 0) {
           console.log('🏷️ 使用传统标签:', legacyTags);
           recordRecentActivity(legacyTags);
+          
+          // 检查扩展上下文是否有效
+          if (!isExtensionContextValid()) {
+            console.warn('⚠️ 扩展上下文无效，无法发送传统分类数据');
+            return;
+          }
+          
           chrome.runtime.sendMessage({
             action: "recordBehavior",
             data: {
               platform: content.platform,
               action: "view",
               tags: legacyTags
+            }
+          }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error('❌ 发送传统分类数据失败:', chrome.runtime.lastError.message);
             }
           });
         }

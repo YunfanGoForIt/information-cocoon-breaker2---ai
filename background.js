@@ -798,6 +798,38 @@ chrome.runtime.onInstalled.addListener(() => {
   } else {
     console.log("⚠️ 未检测到有效的开发配置，请手动配置API密钥");
   }
+  
+  // 重新注入内容脚本到所有匹配的标签页
+  setTimeout(async () => {
+    try {
+      const contentScripts = chrome.runtime.getManifest().content_scripts;
+      for (const cs of contentScripts) {
+        const tabs = await chrome.tabs.query({ url: cs.matches });
+        for (const tab of tabs) {
+          const target = { tabId: tab.id, allFrames: cs.all_frames };
+          if (cs.js) {
+            chrome.scripting.executeScript({
+              target,
+              files: cs.js,
+            }).catch(error => {
+              console.log(`重新注入脚本到标签页 ${tab.id} 失败:`, error.message);
+            });
+          }
+          if (cs.css) {
+            chrome.scripting.insertCSS({
+              target,
+              files: cs.css,
+            }).catch(error => {
+              console.log(`重新注入CSS到标签页 ${tab.id} 失败:`, error.message);
+            });
+          }
+        }
+      }
+      console.log('✅ 内容脚本重新注入完成');
+    } catch (error) {
+      console.error('❌ 重新注入内容脚本失败:', error);
+    }
+  }, 1000); // 延迟1秒执行
 });
 
 // 监听内容脚本消息

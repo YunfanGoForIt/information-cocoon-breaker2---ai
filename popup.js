@@ -171,3 +171,16 @@ function updateThresholdDisplay(percentage) {
   
   descElement.textContent = desc;
 }
+
+// 添加仪表板按钮事件监听
+document.addEventListener('DOMContentLoaded', function() {
+  const dashboardBtn = document.getElementById('dashboard-btn');
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener('click', function() {
+      // 在新标签页中打开数据仪表板
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('dashboard.html')
+      });
+    });
+  }
+});
