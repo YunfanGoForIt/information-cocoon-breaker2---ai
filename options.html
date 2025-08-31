@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI分类系统设置</title>
+    <title>AI Classification System Settings</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -176,67 +176,67 @@
 </head>
 <body>
     <div class="container">
-        <h1>🤖 AI分类系统设置</h1>
+        <h1>🤖 AI Classification System Settings</h1>
         
         <div class="form-group">
             <label>
-                <input type="checkbox" id="enableAI"> 启用AI分类功能
+                <input type="checkbox" id="enableAI"> Enable AI Classification Function
             </label>
         </div>
 
         <div id="aiConfig" style="display: none;">
             <div class="form-group">
-                <label for="apiProvider">选择API服务商:</label>
+                <label for="apiProvider">Select API Service Provider:</label>
                 <select id="apiProvider">
-                    <option value="">请选择...</option>
+                    <option value="">Please select...</option>
                     <option value="openai">OpenAI GPT</option>
-                    <option value="zhipu">智谱AI (GLM)</option>
-                    <option value="baidu">百度文心一言</option>
-                    <option value="qwen">阿里通义千问</option>
-                    <option value="custom">自定义服务</option>
+                    <option value="zhipu">Zhipu AI (GLM)</option>
+                    <option value="baidu">Baidu Wenxin Yiyan</option>
+                    <option value="qwen">Alibaba Tongyi Qianwen</option>
+                    <option value="custom">Custom Service</option>
                 </select>
             </div>
 
             <div class="preset-configs" id="presetConfigs">
-                <!-- 预设配置卡片将在这里动态生成 -->
+                <!-- Preset configuration cards will be dynamically generated here -->
             </div>
 
             <div class="form-group">
-                <label for="apiKey">API密钥:</label>
-                <input type="password" id="apiKey" placeholder="输入您的API密钥">
+                <label for="apiKey">API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your API key">
                 <div class="info">
-                    💡 开发阶段可以直接填入，生产环境建议使用环境变量
+                    💡 Can be filled directly during development, environment variables recommended for production
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="baseUrl">API地址:</label>
+                <label for="baseUrl">API Address:</label>
                 <input type="url" id="baseUrl" placeholder="https://api.openai.com/v1">
             </div>
 
             <div class="form-group">
-                <label for="model">模型名称:</label>
+                <label for="model">Model Name:</label>
                 <input type="text" id="model" placeholder="gpt-3.5-turbo">
             </div>
 
             <div style="text-align: center;">
-                <button onclick="saveConfig()">💾 保存配置</button>
-                <button onclick="testConnection()">🔍 测试连接</button>
-                <button onclick="resetConfig()">🔄 重置</button>
+                <button onclick="saveConfig()">💾 Save Configuration</button>
+                <button onclick="testConnection()">🔍 Test Connection</button>
+                <button onclick="resetConfig()">🔄 Reset</button>
             </div>
         </div>
 
         <div class="status" id="status"></div>
 
         <div id="devQuickSetup" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <h3>🚀 开发快速配置</h3>
-            <p>开发阶段快速配置（密钥会保存在扩展存储中）：</p>
+            <h3>🚀 Development Quick Setup</h3>
+            <p>Quick configuration for development stage (keys will be saved in extension storage):</p>
             <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end;">
-                <input type="password" id="quickApiKey" placeholder="粘贴您的API密钥">
-                <button onclick="quickSetup()">一键配置OpenAI</button>
+                <input type="password" id="quickApiKey" placeholder="Paste your API key">
+                <button onclick="quickSetup()">One-click OpenAI Setup</button>
             </div>
             <div class="info">
-                ⚠️ 此功能仅适用于开发测试，请勿在生产环境使用
+                ⚠️ This feature is only for development testing, do not use in production environment
             </div>
         </div>
     </div>

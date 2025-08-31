@@ -14,226 +14,226 @@ console.log('🔧 使用内联AI模块...');
 // 内联完整版本的CategorySchema
 CategorySchema = {
   CATEGORY_SCHEMA: {
-    // 科技创新类
+    // Technology Innovation
     technology: {
-      name: "科技创新",
-      description: "技术发展、创新应用、数字化转型相关内容",
+      name: "Technology Innovation",
+      description: "Technology development, innovative applications, digital transformation related content",
       subcategories: {
         ai_tech: {
-          name: "AI技术",
-          description: "人工智能、机器学习、深度学习等AI相关技术",
-          keywords: ["ChatGPT实战技巧", "MidJourney绘画教程", "Python机器学习项目示例", "PyTorch深度学习入门", "卷积神经网络可视化", "Transformer原理解析", "AI绘画工具测评", "ChatGPT应用案例", "自动驾驶感知算法", "OpenCV视觉项目", "自然语言处理应用案例", "AI写作助手教程", "客服机器人开发", "AI辅助医疗诊断演示", "AI教育辅助工具"]
+          name: "AI Technology",
+          description: "Artificial intelligence, machine learning, deep learning and other AI-related technologies",
+          keywords: ["ChatGPT practical tips", "MidJourney painting tutorials", "Python machine learning project examples", "PyTorch deep learning introduction", "Convolutional neural network visualization", "Transformer principle analysis", "AI painting tool reviews", "ChatGPT application cases", "Autonomous driving perception algorithms", "OpenCV vision projects", "Natural language processing application cases", "AI writing assistant tutorials", "Customer service chatbot development", "AI-assisted medical diagnosis demonstrations", "AI educational assistance tools"]
         },
         hardware_tech: {
-          name: "硬件科技",
-          description: "电子设备、芯片、硬件创新等",
-          keywords: ["iPhone 15拍照性能测试", "麒麟芯片架构解析", "RTX显卡性能对比", "MacBook拆机教程", "手机摄影参数优化", "5G网络测速实测", "Apple Watch功能评测", "AirPods音质分析", "DIY电脑组装教程", "新款数码开箱视频", "台积电芯片工艺揭秘", "处理器跑分对比", "手机电池续航优化技巧", "索尼相机传感器解析", "Oculus VR设备体验指南"]
+          name: "Hardware Technology",
+          description: "Electronic devices, chips, hardware innovations, etc.",
+          keywords: ["iPhone 15 camera performance test", "Kirin chip architecture analysis", "RTX graphics card performance comparison", "MacBook teardown tutorial", "Mobile photography parameter optimization", "5G network speed test", "Apple Watch feature review", "AirPods sound quality analysis", "DIY computer assembly tutorial", "New digital product unboxing videos", "TSMC chip process revealed", "Processor benchmark comparison", "Mobile battery life optimization tips", "Sony camera sensor analysis", "Oculus VR device experience guide"]
         },
         software_dev: {
-          name: "软件开发",
-          description: "编程、软件工程、开发技术等",
-          keywords: ["Python爬虫项目实战", "Vue 3组合式API教程", "Java项目实战案例", "React Hooks进阶指南", "MySQL数据库设计示例", "Git常用命令实操", "LeetCode编程题解析", "开源项目架构分析", "代码重构最佳实践", "Flutter跨平台应用开发", "Docker容器部署教程", "微服务架构设计案例", "微信小程序实战项目", "前端性能优化技巧", "算法可视化工具开发"]
+          name: "Software Development",
+          description: "Programming, software engineering, development technologies, etc.",
+          keywords: ["Python web scraping project practice", "Vue 3 Composition API tutorial", "Java project practice cases", "React Hooks advanced guide", "MySQL database design examples", "Git common commands practice", "LeetCode programming problem analysis", "Open source project architecture analysis", "Code refactoring best practices", "Flutter cross-platform app development", "Docker container deployment tutorial", "Microservices architecture design cases", "WeChat mini-program practical projects", "Frontend performance optimization tips", "Algorithm visualization tool development"]
         },
         digital_life: {
-          name: "数字生活",
-          description: "数字化应用、智能生活、科技体验等",
-          keywords: ["智能家居系统搭建教程", "必备APP功能推荐", "远程办公高效工具", "个人云盘使用技巧", "智能音箱语音操控演示", "扫地机器人评测与优化", "在线学习平台深度体验", "数字支付安全实用技巧", "智能穿戴设备使用心得", "远程协作软件操作指南", "智能门锁安装流程", "智能家电远程控制技巧", "数字钱包应用案例", "视频会议软件实操教程", "智能灯光系统自动化"]
+          name: "Digital Lifestyle",
+          description: "Digital applications, smart living, technology experiences, etc.",
+          keywords: ["Smart home system setup tutorial", "Essential APP feature recommendations", "Remote work efficiency tools", "Personal cloud storage usage tips", "Smart speaker voice control demonstration", "Robot vacuum review and optimization", "Online learning platform in-depth experience", "Digital payment security practical tips", "Smart wearable device usage insights", "Remote collaboration software operation guide", "Smart door lock installation process", "Smart home appliance remote control tips", "Digital wallet application cases", "Video conferencing software operation tutorial", "Smart lighting system automation"]
         }
       }
     },
 
-    // 文化艺术类
+    // Culture & Arts
     culture_arts: {
-      name: "文化艺术",
-      description: "文化传承、艺术创作、文学影视相关内容",
+      name: "Culture & Arts",
+      description: "Cultural heritage, artistic creation, literature and film related content",
       subcategories: {
         traditional_culture: {
-          name: "传统文化",
-          description: "历史文化、传统艺术、民俗文化等",
-          keywords: ["故宫文物修复视频", "春节民俗体验指南", "古代建筑艺术解析", "手工刺绣制作教程", "唐诗宋词赏析与解读", "京剧表演技巧解析", "汉服穿搭教程", "传统糕点制作方法", "古代礼仪实景展示", "民族乐器演奏视频", "四大名著精读导览", "国画技法解析", "中医经典医书介绍", "古代发明与科技解析", "传统陶瓷制作工艺"]
+          name: "Traditional Culture",
+          description: "Historical culture, traditional arts, folk culture, etc.",
+          keywords: ["Forbidden City artifact restoration videos", "Spring Festival folk experience guide", "Ancient architectural art analysis", "Handmade embroidery production tutorial", "Tang poetry and Song lyrics appreciation and interpretation", "Peking opera performance technique analysis", "Hanfu styling tutorial", "Traditional pastry making methods", "Ancient etiquette live demonstration", "Folk instrument performance videos", "Four great classical novels reading guide", "Traditional Chinese painting technique analysis", "Traditional Chinese medicine classic book introduction", "Ancient inventions and technology analysis", "Traditional ceramic production process"]
         },
         modern_arts: {
-          name: "现代艺术",
-          description: "当代艺术、设计、创意表达等",
-          keywords: ["当代艺术展览点评", "现代建筑设计案例解析", "平面设计实操教程", "数字插画创作流程", "摄影构图与光影技巧", "数字艺术作品展示", "装置艺术创作案例", "现代雕塑设计解析", "艺术展策展思路分享", "创意思维训练方法", "现代绘画作品赏析", "艺术市场趋势分析", "设计师访谈记录", "艺术教育创新方法", "跨界艺术合作案例"]
+          name: "Modern Arts",
+          description: "Contemporary art, design, creative expression, etc.",
+          keywords: ["Contemporary art exhibition reviews", "Modern architectural design case analysis", "Graphic design practical tutorials", "Digital illustration creation process", "Photography composition and lighting techniques", "Digital art works display", "Installation art creation cases", "Modern sculpture design analysis", "Art exhibition curation idea sharing", "Creative thinking training methods", "Modern painting works appreciation", "Art market trend analysis", "Designer interview recordings", "Art education innovation methods", "Cross-border art collaboration cases"]
         },
         literature: {
-          name: "文学创作",
-          description: "文学作品、写作、诗歌散文等",
-          keywords: ["网络小说创作经验", "现代诗歌写作技巧", "散文写作案例分析", "文学名著深度解读", "写作素材整理方法", "小说人物塑造方法", "诗歌朗诵技巧训练", "文学评论写作方法", "作家访谈精选", "国内外文学奖项介绍", "儿童文学创作案例", "科幻小说创作技巧", "推理小说悬疑构建", "翻译文学实践案例", "文学史重点梳理"]
+          name: "Literature & Writing",
+          description: "Literary works, writing, poetry and prose, etc.",
+          keywords: ["Online novel writing experience", "Modern poetry writing techniques", "Prose writing case analysis", "Literary masterpiece in-depth interpretation", "Writing material organization methods", "Novel character creation methods", "Poetry recitation skill training", "Literary criticism writing methods", "Writer interview selections", "Domestic and international literary award introductions", "Children's literature creation cases", "Science fiction novel writing techniques", "Mystery novel suspense construction", "Translation literature practice cases", "Literary history key points summary"]
         },
         media_film: {
-          name: "音乐影视",
-          description: "音乐、电影、电视剧、媒体内容等",
-          keywords: ["热门电影观影指南", "经典电视剧解析", "音乐创作软件教程", "影视后期特效制作", "演员表演技巧剖析", "导演作品创作背景解析", "电影原声配乐赏析", "电视剧剧情深入解析", "音乐节现场演出分享", "影视拍摄技巧讲解", "电影票房与市场分析", "音乐制作DAW软件教程", "影视特效制作案例", "演员访谈精彩片段", "影视奖项颁布及解析"]
+          name: "Music & Film",
+          description: "Music, movies, TV series, media content, etc.",
+          keywords: ["Popular movie viewing guide", "Classic TV series analysis", "Music creation software tutorials", "Film and TV post-production effects", "Actor performance technique analysis", "Director work creation background analysis", "Movie soundtrack appreciation", "TV series plot in-depth analysis", "Music festival live performance sharing", "Film and TV shooting technique explanation", "Movie box office and market analysis", "Music production DAW software tutorials", "Film and TV special effects production cases", "Actor interview highlights", "Film and TV award ceremonies and analysis"]
         }
       }
     },
 
-    // 科学探索类
+    // Science Exploration
     science_exploration: {
-      name: "科学探索",
-      description: "科学研究、自然探索、医学健康相关内容",
+      name: "Science Exploration",
+      description: "Scientific research, natural exploration, medical health related content",
       subcategories: {
         natural_science: {
-          name: "自然科学",
-          description: "物理、化学、生物等基础科学",
-          keywords: ["量子力学实验演示", "元素周期表趣味实验", "达尔文进化理论解析", "科学实验视频教程", "经典物理定律讲解", "化学反应实验演示", "CRISPR基因编辑解析", "实验室仪器操作指南", "实验室安全操作流程", "科学论文解读技巧", "著名物理学家传记", "化学工业应用案例", "生物多样性保护实践", "科学史趣闻解析", "前沿科学技术突破"]
+          name: "Natural Sciences",
+          description: "Physics, chemistry, biology and other basic sciences",
+          keywords: ["Quantum mechanics experiment demonstration", "Periodic table fun experiments", "Darwin's evolution theory analysis", "Science experiment video tutorials", "Classical physics law explanation", "Chemical reaction experiment demonstration", "CRISPR gene editing analysis", "Laboratory equipment operation guide", "Laboratory safety operation procedures", "Scientific paper reading techniques", "Famous physicist biographies", "Chemical industry application cases", "Biodiversity protection practices", "Science history anecdotes analysis", "Frontier science technology breakthroughs"]
         },
         medical_health: {
-          name: "医学健康",
-          description: "医学知识、健康养生、医疗技术等",
-          keywords: ["中医养生食疗方案", "西医诊疗技术解析", "心理健康自我调节方法", "营养搭配健康计划", "健身训练课程指导", "常见疾病预防方法", "医疗设备使用视频", "药物作用机制讲解", "手术技术发展趋势", "康复治疗案例分享", "医学研究最新进展", "年度健康体检指南", "急救技能操作教程", "慢性病管理方案", "医学伦理案例分析"]
+          name: "Medical & Health",
+          description: "Medical knowledge, health and wellness, medical technology, etc.",
+          keywords: ["Traditional Chinese Medicine health diet plans", "Western medicine diagnosis and treatment technology analysis", "Mental health self-regulation methods", "Nutritional balance health plans", "Fitness training course guidance", "Common disease prevention methods", "Medical equipment usage videos", "Drug mechanism explanation", "Surgical technology development trends", "Rehabilitation treatment case sharing", "Latest medical research progress", "Annual health checkup guide", "First aid skill operation tutorial", "Chronic disease management plans", "Medical ethics case analysis"]
         },
         environment: {
-          name: "环境生态",
-          description: "环境保护、生态系统、可持续发展等",
-          keywords: ["气候变化科学解析", "新型环保技术应用", "生态修复案例分享", "可持续发展模式探索", "环境污染治理实践", "绿色能源开发案例", "濒危野生动物保护", "海洋生态系统研究", "森林资源管理方法", "垃圾分类与回收实践", "清洁能源技术展示", "生态农业示范项目", "环境监测仪器使用", "环保政策解读与影响", "生态旅游规划案例"]
+          name: "Environment & Ecology",
+          description: "Environmental protection, ecosystems, sustainable development, etc.",
+          keywords: ["Climate change scientific analysis", "New environmental technology applications", "Ecological restoration case sharing", "Sustainable development model exploration", "Environmental pollution treatment practices", "Green energy development cases", "Endangered wildlife protection", "Marine ecosystem research", "Forest resource management methods", "Waste sorting and recycling practices", "Clean energy technology display", "Ecological agriculture demonstration projects", "Environmental monitoring equipment usage", "Environmental policy interpretation and impact", "Eco-tourism planning cases"]
         },
         astronomy_geo: {
-          name: "天文地理",
-          description: "天文学、地理学、宇宙探索等",
-          keywords: ["天文观测技巧教程", "地貌形成科学解析", "宇宙探测任务分享", "星空摄影拍摄教程", "地球气候变化研究", "太空站生活体验", "行星探测项目解析", "地质构造分析案例", "天文望远镜使用指南", "地理信息系统实操教程", "宇宙起源理论讲解", "地球资源分布数据分析", "太空技术发展进展", "天文摄影后期技巧", "地理环境变化记录"]
+          name: "Astronomy & Geography",
+          description: "Astronomy, geography, space exploration, etc.",
+          keywords: ["Astronomical observation technique tutorials", "Landform formation scientific analysis", "Space exploration mission sharing", "Starry sky photography shooting tutorial", "Earth climate change research", "Space station life experience", "Planetary exploration project analysis", "Geological structure analysis cases", "Astronomical telescope usage guide", "Geographic information system practical tutorial", "Universe origin theory explanation", "Earth resource distribution data analysis", "Space technology development progress", "Astrophotography post-processing techniques", "Geographic environment change records"]
         }
       }
     },
 
-    // 社会人文类
+    // Society & Humanities
     society_humanity: {
-      name: "社会人文",
-      description: "社会议题、人文思考、哲学心理相关内容",
+      name: "Society & Humanities",
+      description: "Social issues, humanistic thinking, philosophy and psychology related content",
       subcategories: {
         history_philosophy: {
-          name: "历史哲学",
-          description: "历史事件、哲学思辨、思想文化等",
-          keywords: ["重大历史事件解析", "哲学思想专题探讨", "古代文明发展研究", "思想家传记精选", "历史人物影响评价", "哲学流派体系介绍", "文化传承研究案例", "历史考古发现分享", "哲学经典原文解读", "思想史系统梳理", "历史文献考证方法", "哲学问题实用讨论", "文化比较研究方法", "历史研究方法论", "哲学应用实践案例"]
+          name: "History & Philosophy",
+          description: "Historical events, philosophical thinking, intellectual culture, etc.",
+          keywords: ["Major historical event analysis", "Philosophy thought topic discussions", "Ancient civilization development research", "Thinker biography selections", "Historical figure impact evaluation", "Philosophy school system introduction", "Cultural heritage research cases", "Historical archaeological discovery sharing", "Philosophy classic original text interpretation", "Intellectual history systematic sorting", "Historical document verification methods", "Philosophy problem practical discussions", "Cultural comparative research methods", "Historical research methodology", "Philosophy application practice cases"]
         },
         psychology: {
-          name: "心理学",
-          description: "心理健康、行为分析、心理学知识等",
-          keywords: ["心理咨询实用技巧", "情绪管理科学方法", "人际沟通与关系处理", "心理疾病治疗方案", "行为心理学实验案例", "认知心理学应用场景", "儿童心理发展指南", "职场心理调适方法", "恋爱心理学分析", "压力缓解训练方法", "心理测评工具使用", "心理治疗案例分析", "社会心理学研究方法", "心理危机干预指南", "心理健康教育课程"]
+          name: "Psychology",
+          description: "Mental health, behavioral analysis, psychological knowledge, etc.",
+          keywords: ["Psychological counseling practical techniques", "Emotion management scientific methods", "Interpersonal communication and relationship handling", "Mental illness treatment plans", "Behavioral psychology experimental cases", "Cognitive psychology application scenarios", "Child psychological development guide", "Workplace psychological adjustment methods", "Love psychology analysis", "Stress relief training methods", "Psychological assessment tool usage", "Psychotherapy case analysis", "Social psychology research methods", "Psychological crisis intervention guide", "Mental health education courses"]
         },
         social_issues: {
-          name: "社会议题",
-          description: "社会现象、公共话题、时事评论等",
-          keywords: ["社会热点事件解析", "时事新闻深度评论", "社会现象调查分析", "公共政策研讨", "民生问题案例研究", "社会发展趋势分析", "城市治理经验分享", "社会公平与正义讨论", "人口政策影响案例", "教育制度改革案例", "医疗体系改革分析", "住房政策研究", "就业形势数据分析", "社会保障制度研究", "社会创新实践案例"]
+          name: "Social Issues",
+          description: "Social phenomena, public topics, current affairs commentary, etc.",
+          keywords: ["Social hot event analysis", "Current affairs news in-depth commentary", "Social phenomenon investigation and analysis", "Public policy discussions", "People's livelihood issue case studies", "Social development trend analysis", "Urban governance experience sharing", "Social equity and justice discussions", "Population policy impact cases", "Education system reform cases", "Healthcare system reform analysis", "Housing policy research", "Employment situation data analysis", "Social security system research", "Social innovation practice cases"]
         },
         law_politics: {
-          name: "法律政治",
-          description: "法律知识、政治制度、公共政策等",
-          keywords: ["典型法律案例解析", "政治制度对比研究", "政策法规解读技巧", "宪法知识普及讲解", "国际法案例分析", "政治体制改革方案", "法律实务操作指南", "政策影响评估方法", "法律制度建设案例", "政治理论专题探讨", "法律维权实用技巧", "政策制定流程分析", "国际政治关系解析", "法律职业发展路径", "政治参与形式分析"]
+          name: "Law & Politics",
+          description: "Legal knowledge, political systems, public policy, etc.",
+          keywords: ["Typical legal case analysis", "Political system comparative research", "Policy regulation interpretation techniques", "Constitutional knowledge popularization explanation", "International law case analysis", "Political system reform plans", "Legal practice operation guide", "Policy impact assessment methods", "Legal system construction cases", "Political theory topic discussions", "Legal rights protection practical techniques", "Policy formulation process analysis", "International political relations analysis", "Legal profession development path", "Political participation form analysis"]
         }
       }
     },
 
-    // 生活方式类
+    // Lifestyle
     lifestyle: {
-      name: "生活方式",
-      description: "日常生活、个人兴趣、生活技能相关内容",
+      name: "Lifestyle",
+      description: "Daily life, personal interests, life skills related content",
       subcategories: {
         food_cooking: {
-          name: "美食烹饪",
-          description: "美食制作、烹饪技巧、餐厅推荐等",
-          keywords: ["家常菜具体做法", "烘焙详细教程", "火锅底料配方解析", "餐厅美食点评", "地方小吃制作技巧", "营养搭配食谱", "调味料使用教程", "食材挑选指南", "厨房工具使用方法", "美食摄影拍摄技巧", "地方特色菜制作", "素食料理详细步骤", "饮品调制配方", "美食文化背景介绍", "厨房收纳整理技巧"]
+          name: "Food & Cooking",
+          description: "Food preparation, cooking techniques, restaurant recommendations, etc.",
+          keywords: ["Home cooking specific methods", "Detailed baking tutorials", "Hot pot base recipe analysis", "Restaurant food reviews", "Local snack preparation techniques", "Nutritional meal recipes", "Seasoning usage tutorials", "Ingredient selection guide", "Kitchen tool usage methods", "Food photography shooting techniques", "Local specialty dish preparation", "Vegetarian cooking detailed steps", "Beverage mixing recipes", "Food culture background introduction", "Kitchen organization tips"]
         },
         travel_adventure: {
-          name: "旅行探险",
-          description: "旅游攻略、探险体验、地方文化等",
-          keywords: ["旅行线路详细规划", "探险装备使用指南", "景点门票预订攻略", "文化体验活动推荐", "旅行摄影技巧教学", "酒店住宿评价与选择", "当地美食体验分享", "旅行路线优化策略", "户外探险技巧教程", "文化遗产参观指南", "旅行预算管理技巧", "旅行安全注意事项", "民俗文化体验", "旅行装备清单准备", "旅行保险购买攻略"]
+          name: "Travel & Adventure",
+          description: "Travel guides, adventure experiences, local culture, etc.",
+          keywords: ["Detailed travel route planning", "Adventure equipment usage guide", "Attraction ticket booking strategies", "Cultural experience activity recommendations", "Travel photography technique teaching", "Hotel accommodation evaluation and selection", "Local food experience sharing", "Travel route optimization strategies", "Outdoor adventure technique tutorials", "Cultural heritage visit guide", "Travel budget management tips", "Travel safety precautions", "Folk culture experience", "Travel equipment checklist preparation", "Travel insurance purchase strategies"]
         },
         fashion_beauty: {
-          name: "时尚美妆",
-          description: "时尚搭配、美妆护肤、潮流趋势等",
-          keywords: ["服装搭配实用技巧", "美妆产品真实测评", "护肤步骤详细教程", "潮流趋势分析报告", "化妆技巧实操教学", "发型设计灵感推荐", "服饰搭配指南", "美妆工具使用方法", "护肤成分解析与推荐", "知名时尚品牌介绍", "美妆博主推荐案例", "护肤误区纠正指南", "时尚摄影技巧实操", "美妆产品选购指南", "时尚文化背景解读"]
+          name: "Fashion & Beauty",
+          description: "Fashion styling, beauty and skincare, trend analysis, etc.",
+          keywords: ["Clothing styling practical tips", "Beauty product authentic reviews", "Skincare routine detailed tutorials", "Trend analysis reports", "Makeup technique practical teaching", "Hairstyle design inspiration recommendations", "Clothing styling guide", "Beauty tool usage methods", "Skincare ingredient analysis and recommendations", "Famous fashion brand introductions", "Beauty blogger recommendation cases", "Skincare misconception correction guide", "Fashion photography technique practice", "Beauty product shopping guide", "Fashion culture background interpretation"]
         },
         home_decor: {
-          name: "家居装饰",
-          description: "家居设计、装修装饰、生活用品等",
-          keywords: ["家居设计风格解析", "装修材料选择技巧", "装饰品搭配方法", "家具选购实用指南", "生活用品推荐与评测", "室内设计布局案例", "装修预算规划方法", "家居收纳整理方案", "软装搭配技巧分享", "家居风水布局解析", "装修施工流程指导", "家居品牌推荐案例", "生活用品使用评测", "DIY家居制作教程", "家居保养与维护技巧"]
+          name: "Home & Decoration",
+          description: "Home design, renovation and decoration, household items, etc.",
+          keywords: ["Home design style analysis", "Renovation material selection tips", "Decoration item matching methods", "Furniture shopping practical guide", "Household item recommendations and reviews", "Interior design layout cases", "Renovation budget planning methods", "Home organization solutions", "Soft furnishing matching tips sharing", "Home feng shui layout analysis", "Renovation construction process guidance", "Home brand recommendation cases", "Household item usage reviews", "DIY home creation tutorials", "Home maintenance and care tips"]
         }
       }
     },
 
-    // 教育成长类
+    // Education & Growth
     education_growth: {
-      name: "教育成长",
-      description: "学习教育、个人发展、技能提升相关内容",
+      name: "Education & Growth",
+      description: "Learning education, personal development, skill enhancement related content",
       subcategories: {
         learning_methods: {
-          name: "学习方法",
-          description: "学习技巧、教育方法、知识获取等",
-          keywords: ["高效学习方法实操", "记忆力训练方法", "时间管理技巧教程", "学习计划制定实例", "知识整理技巧", "学习效率提升方案", "考试复习策略分享", "学习动机培养方法", "知识体系搭建案例", "学习环境优化技巧", "学习工具实用教程", "学习方法测评案例", "良好学习习惯养成", "知识应用实战", "学习成果评估方法"]
+          name: "Learning Methods",
+          description: "Learning techniques, educational methods, knowledge acquisition, etc.",
+          keywords: ["Effective learning method practice", "Memory training methods", "Time management technique tutorials", "Study plan formulation examples", "Knowledge organization techniques", "Learning efficiency improvement plans", "Exam review strategy sharing", "Learning motivation cultivation methods", "Knowledge system construction cases", "Learning environment optimization tips", "Learning tool practical tutorials", "Learning method evaluation cases", "Good study habit formation", "Knowledge application practice", "Learning outcome assessment methods"]
         },
         career_dev: {
-          name: "职业发展",
-          description: "职场技能、职业规划、工作经验等",
-          keywords: ["职场技能提升案例", "职业规划详细指南", "职场工作经验分享", "面试技巧实操", "简历制作模板与指导", "职场人际沟通技巧", "职业转型策略", "薪资谈判技巧分享", "职场礼仪规范讲解", "职业发展路径分析", "工作压力管理方法", "职业倦怠预防指南", "职场沟通实用技巧", "职业资格证书获取方法", "创业经验分享案例"]
+          name: "Career Development",
+          description: "Workplace skills, career planning, work experience, etc.",
+          keywords: ["Workplace skill improvement cases", "Career planning detailed guide", "Workplace work experience sharing", "Interview technique practice", "Resume creation templates and guidance", "Workplace interpersonal communication skills", "Career transition strategies", "Salary negotiation technique sharing", "Workplace etiquette standard explanation", "Career development path analysis", "Work stress management methods", "Career burnout prevention guide", "Workplace communication practical skills", "Professional qualification certificate acquisition methods", "Entrepreneurship experience sharing cases"]
         },
         skill_training: {
-          name: "技能培训",
-          description: "专业技能、实用技能、培训课程等",
-          keywords: ["专业技能培训课程", "实用技能学习方法", "在线课程精选推荐", "专业能力提升指南", "技能认证考试指导", "培训课程设计案例", "技能学习高效方法", "专业工具使用教程", "技能实践项目分享", "培训效果评估方法", "技能竞赛参与案例", "专业技能测评标准", "技能应用案例分析", "培训资源推荐平台", "技能发展路径规划"]
+          name: "Skill Training",
+          description: "Professional skills, practical skills, training courses, etc.",
+          keywords: ["Professional skill training courses", "Practical skill learning methods", "Online course selection recommendations", "Professional ability improvement guide", "Skill certification exam guidance", "Training course design cases", "Skill learning efficient methods", "Professional tool usage tutorials", "Skill practice project sharing", "Training effectiveness evaluation methods", "Skill competition participation cases", "Professional skill assessment standards", "Skill application case analysis", "Training resource recommendation platforms", "Skill development path planning"]
         },
         parenting_education: {
-          name: "亲子教育",
-          description: "育儿知识、家庭教育、儿童成长等",
-          keywords: ["育儿知识具体方法", "亲子活动设计方案", "家庭教育技巧分享", "儿童成长指导案例", "教育理念解析与实践", "亲子沟通实用技巧", "儿童心理发展分析", "家庭教育真实案例", "育儿经验交流分享", "儿童教育游戏推荐", "亲子阅读推广方法", "家庭教育资源整理", "儿童行为管理技巧", "亲子关系维护方案", "家庭教育规划方法"]
+          name: "Parenting & Education",
+          description: "Parenting knowledge, family education, child development, etc.",
+          keywords: ["Parenting knowledge specific methods", "Parent-child activity design plans", "Family education technique sharing", "Child development guidance cases", "Educational philosophy analysis and practice", "Parent-child communication practical skills", "Child psychological development analysis", "Family education real cases", "Parenting experience exchange sharing", "Children's educational game recommendations", "Parent-child reading promotion methods", "Family education resource organization", "Child behavior management techniques", "Parent-child relationship maintenance plans", "Family education planning methods"]
         }
       }
     },
 
-    // 商业财经类
+    // Business & Finance
     business_finance: {
-      name: "商业财经",
-      description: "商业模式、投资理财、经济分析相关内容",
+      name: "Business & Finance",
+      description: "Business models, investment and finance, economic analysis related content",
       subcategories: {
         entrepreneurship: {
-          name: "创业投资",
-          description: "创业经验、投资理念、商业模式等",
-          keywords: ["创业经验分享案例", "投资理念实用解析", "商业模式设计方法", "企业发展战略案例", "资本运作技巧分享", "融资渠道选择指南", "创业项目评估方法", "投资风险控制策略", "商业计划书撰写案例", "创业团队建设方法", "市场调研实操方法", "投资组合管理技巧", "创业政策解读案例", "投资成功案例分析", "商业创新思维训练"]
+          name: "Entrepreneurship & Investment",
+          description: "Entrepreneurial experience, investment philosophy, business models, etc.",
+          keywords: ["Entrepreneurship experience sharing cases", "Investment philosophy practical analysis", "Business model design methods", "Enterprise development strategy cases", "Capital operation technique sharing", "Financing channel selection guide", "Startup project evaluation methods", "Investment risk control strategies", "Business plan writing cases", "Startup team building methods", "Market research practical methods", "Investment portfolio management techniques", "Startup policy interpretation cases", "Investment success case analysis", "Business innovation thinking training"]
         },
         market_analysis: {
-          name: "市场分析",
-          description: "市场趋势、行业分析、商业洞察等",
-          keywords: ["市场趋势数据分析", "行业研究报告解读", "商业洞察案例分享", "市场调研方法实操", "商业分析工具使用", "市场研究技巧分享", "行业竞争态势分析", "市场预测模型应用", "商业数据解析技巧", "市场机会识别方法", "行业发展趋势分析", "商业策略制定指南", "市场风险评估方法", "商业案例实战分析", "市场调研报告制作"]
+          name: "Market Analysis",
+          description: "Market trends, industry analysis, business insights, etc.",
+          keywords: ["Market trend data analysis", "Industry research report interpretation", "Business insight case sharing", "Market research method practice", "Business analysis tool usage", "Market research technique sharing", "Industry competition situation analysis", "Market prediction model application", "Business data analysis techniques", "Market opportunity identification methods", "Industry development trend analysis", "Business strategy formulation guide", "Market risk assessment methods", "Business case practical analysis", "Market research report production"]
         },
         economic_trends: {
-          name: "经济趋势",
-          description: "经济形势、宏观经济、政策影响等",
-          keywords: ["经济形势深度分析", "宏观经济政策解读", "政策影响评估方法", "经济趋势预测案例", "金融政策解析", "经济数据分析方法", "货币政策研究", "财政政策影响分析", "经济周期研究案例", "通货膨胀趋势分析", "经济增长模式解析", "经济结构调整案例", "国际经济关系研究", "经济风险评估方法", "经济政策建议案例"]
+          name: "Economic Trends",
+          description: "Economic situation, macroeconomics, policy impact, etc.",
+          keywords: ["Economic situation in-depth analysis", "Macroeconomic policy interpretation", "Policy impact assessment methods", "Economic trend prediction cases", "Financial policy analysis", "Economic data analysis methods", "Monetary policy research", "Fiscal policy impact analysis", "Economic cycle research cases", "Inflation trend analysis", "Economic growth model analysis", "Economic structure adjustment cases", "International economic relations research", "Economic risk assessment methods", "Economic policy recommendation cases"]
         },
         personal_finance: {
-          name: "理财规划",
-          description: "个人理财、财务规划、投资建议等",
-          keywords: ["个人理财规划实例", "财务规划技巧教程", "投资理财具体建议", "财富管理实用方法", "资产配置策略案例", "理财产品分析评测", "投资风险评估方法", "财务自由规划方案", "税务筹划实用技巧", "保险产品选择指南", "退休金规划方法", "子女教育金规划技巧", "房产投资分析案例", "基金投资操作方法", "股票投资入门教程"]
+          name: "Financial Planning",
+          description: "Personal finance, financial planning, investment advice, etc.",
+          keywords: ["Personal financial planning examples", "Financial planning technique tutorials", "Investment finance specific advice", "Wealth management practical methods", "Asset allocation strategy cases", "Financial product analysis and review", "Investment risk assessment methods", "Financial freedom planning solutions", "Tax planning practical techniques", "Insurance product selection guide", "Pension planning methods", "Children's education fund planning tips", "Real estate investment analysis cases", "Fund investment operation methods", "Stock investment beginner tutorials"]
         }
       }
     },
 
-    // 娱乐休闲类
+    // Entertainment & Leisure
     entertainment: {
-      name: "娱乐休闲",
-      description: "娱乐活动、休闲爱好、体育竞技相关内容",
+      name: "Entertainment & Leisure",
+      description: "Entertainment activities, leisure hobbies, sports competition related content",
       subcategories: {
         gaming: {
-          name: "游戏竞技",
-          description: "电子游戏、竞技比赛、游戏文化等",
-          keywords: ["电子游戏通关攻略", "电竞比赛直播解说", "竞技游戏实战技巧", "游戏文化分析", "比赛战术策略解析", "娱乐游戏推荐合集", "知名游戏主播推荐", "游戏评测与分析", "电竞产业发展趋势", "游戏开发技术分享", "游戏剧情解析与讲解", "游戏音乐欣赏指南", "游戏周边产品推荐", "游戏社区交流技巧", "游戏历史发展回顾"]
+          name: "Gaming & Esports",
+          description: "Video games, competitive games, gaming culture, etc.",
+          keywords: ["Video game walkthrough strategies", "Esports competition live commentary", "Competitive gaming practical techniques", "Gaming culture analysis", "Competition tactical strategy analysis", "Entertainment game recommendation collections", "Famous game streamer recommendations", "Game reviews and analysis", "Esports industry development trends", "Game development technology sharing", "Game plot analysis and explanation", "Game music appreciation guide", "Gaming merchandise recommendations", "Gaming community communication tips", "Gaming history development review"]
         },
         sports: {
-          name: "体育运动",
-          description: "体育赛事、运动健身、体育文化等",
-          keywords: ["体育赛事直播回顾", "运动健身训练指导", "比赛战术策略分析", "体育文化背景解读", "运动健身计划制定", "足球比赛战术讲解", "欧冠赛事精彩回顾", "篮球技能训练教程", "健身器材使用方法", "体育明星访谈精选", "运动营养搭配方案", "体育场馆设施介绍", "运动损伤预防技巧", "体育产业发展分析", "运动装备使用与推荐"]
+          name: "Sports & Fitness",
+          description: "Sports events, fitness training, sports culture, etc.",
+          keywords: ["Sports event live reviews", "Fitness training guidance", "Competition tactical strategy analysis", "Sports culture background interpretation", "Fitness plan formulation", "Football match tactical explanation", "Champions League highlights review", "Basketball skill training tutorials", "Fitness equipment usage methods", "Sports star interview highlights", "Sports nutrition matching plans", "Sports venue facility introductions", "Sports injury prevention tips", "Sports industry development analysis", "Sports equipment usage and recommendations"]
         },
         variety_shows: {
-          name: "综艺娱乐",
-          description: "综艺节目、娱乐节目、明星八卦等",
-          keywords: ["热门综艺节目推荐", "娱乐节目点评解析", "明星八卦新闻精选", "娱乐资讯分享与分析", "节目制作幕后揭秘", "明星访谈精彩片段", "综艺节目策划案例", "娱乐产业发展趋势", "明星生活经验分享", "节目收视率分析方法", "娱乐新闻评论解读", "综艺节目剪辑技巧", "明星时尚穿搭指南", "娱乐营销策略案例", "节目嘉宾详细介绍"]
+          name: "Variety & Entertainment",
+          description: "Variety shows, entertainment programs, celebrity gossip, etc.",
+          keywords: ["Popular variety show recommendations", "Entertainment program commentary analysis", "Celebrity gossip news selections", "Entertainment news sharing and analysis", "Program production behind-the-scenes revelations", "Celebrity interview highlights", "Variety show planning cases", "Entertainment industry development trends", "Celebrity life experience sharing", "Program rating analysis methods", "Entertainment news commentary interpretation", "Variety show editing techniques", "Celebrity fashion styling guide", "Entertainment marketing strategy cases", "Program guest detailed introductions"]
         },
         comedy_humor: {
-          name: "搞笑幽默",
-          description: "幽默内容、搞笑视频、段子等",
-          keywords: ["搞笑视频精选合集", "幽默段子分享精选", "喜剧表演视频欣赏", "趣味内容推荐", "搞笑娱乐合集精选", "网友神评论整理", "搞笑图片幽默分享", "幽默故事讲述合集", "喜剧电影推荐解析", "搞笑配音作品精选", "幽默对话集锦分享", "搞笑表情包使用教程", "喜剧小品表演精选", "创意幽默广告案例", "搞笑综艺精彩片段"]
+          name: "Comedy & Humor",
+          description: "Humorous content, funny videos, jokes, etc.",
+          keywords: ["Funny video selection collections", "Humorous joke sharing selections", "Comedy performance video appreciation", "Interesting content recommendations", "Funny entertainment collection selections", "Netizen divine comment compilations", "Funny picture humor sharing", "Humorous story telling collections", "Comedy movie recommendation analysis", "Funny dubbing work selections", "Humorous dialogue collection sharing", "Funny emoji usage tutorials", "Comedy sketch performance selections", "Creative humorous advertising cases", "Funny variety show highlights"]
         }
       }
     }
@@ -271,7 +271,7 @@ AIApiClient = class {
     }
     
     async chatCompletion(messages) {
-      console.log('🌐 发送API请求到智谱GLM...');
+      console.log('🌐 Sending API request to Zhipu GLM...');
       const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
         method: 'POST',
         headers: {
@@ -286,18 +286,18 @@ AIApiClient = class {
       });
       
       if (!response.ok) {
-        throw new Error(`API请求失败: ${response.status}`);
+        throw new Error(`API request failed: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('✅ API响应成功');
+      console.log('✅ API response successful');
       return data;
     }
     
     async testConnection() {
       try {
         const result = await this.chatCompletion([
-          { role: "user", content: "测试连接，请回复'连接成功'" }
+          { role: "user", content: "Test connection, please reply 'Connection successful'" }
         ]);
         return { success: true, response: result.choices[0].message.content };
       } catch (error) {
@@ -719,7 +719,7 @@ const DEV_DEFAULT_CONFIG = {
   enabled: true,  // 设置为false可禁用开发默认配置
   apiConfig: {
     // 在这里填入您的开发API密钥
-    apiKey: "e45bb7e5b3c24248ad2a5e2d8be06387.n3V6k3bs2cczwDvi",  // 替换为您的实际API密钥
+    apiKey: "your-api-key-here",  // 替换为您的实际API密钥
     model: "glm-4.5",
     name: "开发默认配置",
     temperature: 0.6,
@@ -1239,8 +1239,8 @@ function getDefaultRecommendations(tags) {
     // 如果收集的关键词不够，添加一些通用推荐
     while (defaultRecommendations.length < 4) {
       const fallbackKeywords = [
-        "ChatGPT使用技巧", "故宫文物修复", "量子物理实验", "心理咨询技巧",
-        "家常菜制作", "旅游攻略制作", "高效学习方法", "创业经验分享"
+        "ChatGPT Usage Tips", "Palace Artifact Restoration", "Quantum Physics Experiments", "Psychological Counseling Techniques",
+        "Home Cooking Recipes", "Travel Guide Creation", "Efficient Learning Methods", "Entrepreneurship Experience Sharing"
       ];
       const randomFallback = fallbackKeywords[Math.floor(Math.random() * fallbackKeywords.length)];
       if (!defaultRecommendations.includes(randomFallback)) {

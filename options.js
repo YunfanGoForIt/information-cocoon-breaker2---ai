@@ -1,28 +1,28 @@
-// 预设配置 - 只支持智谱GLM-4.5
+// Preset configurations - Only supports Zhipu GLM-4.5
 const PRESET_CONFIGS = {
     zhipu: {
-        name: "智谱AI GLM-4.5",
+        name: "Zhipu AI GLM-4.5",
         baseUrl: "https://open.bigmodel.cn/api/paas/v4",
         model: "glm-4.5",
-        description: "智谱AI GLM-4.5，国内访问稳定，支持中文",
+        description: "Zhipu AI GLM-4.5, stable access in China, supports Chinese",
         keyExample: "xxxx.xxxxxxxxxxxxxxxxx"
     }
 };
 
-// 页面加载时初始化
+// Page initialization
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentConfig();
     setupEventListeners();
     renderPresetConfigs();
 });
 
-// 设置事件监听器
+// Setup event listeners
 function setupEventListeners() {
     document.getElementById('enableAI').addEventListener('change', toggleAIConfig);
     document.getElementById('apiProvider').addEventListener('change', onProviderChange);
 }
 
-// 渲染预设配置卡片
+// Render preset configuration cards
 function renderPresetConfigs() {
     const container = document.getElementById('presetConfigs');
     container.innerHTML = '';
@@ -32,98 +32,98 @@ function renderPresetConfigs() {
         card.className = 'preset-card';
         card.innerHTML = `
             <h3>${config.name}</h3>
-            <p><strong>模型:</strong> ${config.model}</p>
-            <p><strong>说明:</strong> ${config.description}</p>
-            <p><strong>密钥格式:</strong> ${config.keyExample}</p>
-            <button onclick="usePreset('${key}')" style="margin-top: 10px;">使用此配置</button>
+            <p><strong>Model:</strong> ${config.model}</p>
+            <p><strong>Description:</strong> ${config.description}</p>
+            <p><strong>Key Format:</strong> ${config.keyExample}</p>
+            <button onclick="usePreset('${key}')" style="margin-top: 10px;">Use This Configuration</button>
         `;
         container.appendChild(card);
     });
 }
 
-// 使用智谱GLM配置
+// Use Zhipu GLM configuration
 function usePreset(presetKey = 'zhipu') {
-    const config = PRESET_CONFIGS.zhipu; // 只使用智谱配置
+    const config = PRESET_CONFIGS.zhipu; // Only use Zhipu configuration
     
     document.getElementById('apiProvider').value = 'zhipu';
     document.getElementById('baseUrl').value = config.baseUrl;
     document.getElementById('model').value = config.model;
     
-    showStatus(`已应用 ${config.name} 配置，请输入您的API密钥`, 'success');
+    showStatus(`Applied ${config.name} configuration, please enter your API key`, 'success');
 }
 
-// 提供商变化时更新表单 - 固定使用智谱
+// Provider change updates form - Fixed to use Zhipu
 function onProviderChange() {
-    usePreset('zhipu'); // 强制使用智谱配置
+    usePreset('zhipu'); // Force use of Zhipu configuration
 }
 
-// 切换AI配置显示
+// Toggle AI configuration display
 function toggleAIConfig() {
     const enabled = document.getElementById('enableAI').checked;
     const configDiv = document.getElementById('aiConfig');
     configDiv.style.display = enabled ? 'block' : 'none';
 }
 
-// 加载当前配置
+// Load current configuration
 async function loadCurrentConfig() {
     try {
         const result = await chrome.storage.local.get(['aiClassificationEnabled', 'aiApiConfig']);
         
-        // 设置开关状态
+        // Set switch state
         const enabledCheckbox = document.getElementById('enableAI');
         enabledCheckbox.checked = result.aiClassificationEnabled || false;
         toggleAIConfig();
         
-        // 如果有已保存的配置，填充表单
+        // If there's saved configuration, populate the form
         if (result.aiApiConfig) {
             const config = result.aiApiConfig;
             document.getElementById('apiKey').value = config.apiKey || '';
             document.getElementById('baseUrl').value = config.baseUrl || '';
             document.getElementById('model').value = config.model || '';
             
-            // 尝试匹配预设提供商
+            // Try to match preset provider
             const matchedProvider = findMatchingProvider(config);
             if (matchedProvider) {
                 document.getElementById('apiProvider').value = matchedProvider;
             }
         }
         
-        showStatus('配置已加载', 'success');
+        showStatus('Configuration loaded', 'success');
     } catch (error) {
-        showStatus('加载配置失败: ' + error.message, 'error');
+        showStatus('Failed to load configuration: ' + error.message, 'error');
     }
 }
 
-// 查找匹配的提供商 - 只支持智谱
+// Find matching provider - Only supports Zhipu
 function findMatchingProvider(config) {
     if (config.baseUrl && config.baseUrl.includes('bigmodel.cn')) {
         return 'zhipu';
     }
-    return 'zhipu'; // 默认返回智谱
+    return 'zhipu'; // Default to Zhipu
 }
 
-// 保存配置
+// Save configuration
 async function saveConfig() {
     try {
         const enabled = document.getElementById('enableAI').checked;
         
         if (!enabled) {
-            // 只保存开关状态
+            // Only save switch state
             await chrome.storage.local.set({
                 aiClassificationEnabled: false
             });
-            showStatus('AI分类已禁用', 'success');
+            showStatus('AI classification disabled', 'success');
             return;
         }
         
-        // 获取表单数据
+        // Get form data
         const apiKey = document.getElementById('apiKey').value.trim();
         const baseUrl = document.getElementById('baseUrl').value.trim();
         const model = document.getElementById('model').value.trim();
         
-        // 验证必填字段
+        // Validate required fields
         if (!apiKey || !baseUrl || !model) {
-            showStatus('请填写完整的API配置信息', 'error');
+            showStatus('Please fill in complete API configuration information', 'error');
             return;
         }
         
@@ -137,50 +137,50 @@ async function saveConfig() {
             }
         };
         
-        // 保存到chrome存储
+        // Save to chrome storage
         await chrome.storage.local.set({
             aiClassificationEnabled: true,
             aiApiConfig: config.apiConfig
         });
         
-        // 通知背景脚本更新配置
+        // Notify background script to update configuration
         const response = await chrome.runtime.sendMessage({
             action: "updateAIConfig",
             config: config
         });
         
         if (response.status === 'success') {
-            showStatus('✅ 配置保存成功！AI分类功能已启用', 'success');
+            showStatus('✅ Configuration saved successfully! AI classification feature enabled', 'success');
         } else {
-            showStatus('配置保存失败: ' + response.message, 'error');
+            showStatus('Configuration save failed: ' + response.message, 'error');
         }
         
     } catch (error) {
-        showStatus('保存失败: ' + error.message, 'error');
+        showStatus('Save failed: ' + error.message, 'error');
     }
 }
 
-// 测试连接
+// Test connection
 async function testConnection() {
     try {
-        showStatus('正在测试连接...', 'info');
+        showStatus('Testing connection...', 'info');
         
-        // 先保存当前配置
+        // Save current configuration first
         await saveConfig();
         
-        // 测试连接
+        // Test connection
         const response = await chrome.runtime.sendMessage({
             action: "testAIConnection"
         });
         
         if (response.success) {
-            showStatus(`✅ 连接测试成功！\n响应: ${response.response}\n模型: ${response.model}`, 'success');
+            showStatus(`✅ Connection test successful!\nResponse: ${response.response}\nModel: ${response.model}`, 'success');
         } else {
-            showStatus(`❌ 连接测试失败: ${response.message}`, 'error');
+            showStatus(`❌ Connection test failed: ${response.message}`, 'error');
         }
         
     } catch (error) {
-        showStatus('测试失败: ' + error.message, 'error');
+        showStatus('Test failed: ' + error.message, 'error');
     }
 }
 
@@ -198,49 +198,49 @@ async function resetConfig() {
             document.getElementById('model').value = '';
             
             toggleAIConfig();
-            showStatus('配置已重置', 'success');
+            showStatus('Configuration reset', 'success');
             
         } catch (error) {
-            showStatus('重置失败: ' + error.message, 'error');
+            showStatus('Reset failed: ' + error.message, 'error');
         }
     }
 }
 
-// 开发快速配置
+// Development quick setup
 async function quickSetup() {
     const apiKey = document.getElementById('quickApiKey').value.trim();
     
     if (!apiKey) {
-        showStatus('请输入API密钥', 'error');
+        showStatus('Please enter API key', 'error');
         return;
     }
     
     if (!apiKey.startsWith('sk-')) {
-        if (!confirm('API密钥格式可能不正确（通常以sk-开头），确定继续吗？')) {
+        if (!confirm('API key format may be incorrect (usually starts with sk-), continue anyway?')) {
             return;
         }
     }
     
     try {
-        // 使用OpenAI预设配置
+        // Use OpenAI preset configuration
         const config = {
             enabled: true,
             apiConfig: {
                 apiKey: apiKey,
                 baseUrl: "https://api.openai.com/v1",
                 model: "gpt-3.5-turbo",
-                name: "OpenAI GPT (快速配置)",
+                name: "OpenAI GPT (Quick Setup)",
                 updatedAt: new Date().toISOString()
             }
         };
         
-        // 保存配置
+        // Save configuration
         await chrome.storage.local.set({
             aiClassificationEnabled: true,
             aiApiConfig: config.apiConfig
         });
         
-        // 更新表单显示
+        // Update form display
         document.getElementById('enableAI').checked = true;
         document.getElementById('apiProvider').value = 'openai';
         document.getElementById('apiKey').value = apiKey;
@@ -248,33 +248,33 @@ async function quickSetup() {
         document.getElementById('model').value = config.apiConfig.model;
         toggleAIConfig();
         
-        // 通知背景脚本
+        // Notify background script
         const response = await chrome.runtime.sendMessage({
             action: "updateAIConfig",
             config: config
         });
         
         if (response.status === 'success') {
-            showStatus('🚀 快速配置完成！已启用OpenAI GPT-3.5', 'success');
+            showStatus('🚀 Quick setup complete! OpenAI GPT-3.5 enabled', 'success');
             
-            // 自动测试连接
+            // Auto test connection
             setTimeout(testConnection, 1000);
         } else {
-            showStatus('快速配置失败: ' + response.message, 'error');
+            showStatus('Quick setup failed: ' + response.message, 'error');
         }
         
     } catch (error) {
-        showStatus('快速配置失败: ' + error.message, 'error');
+        showStatus('Quick setup failed: ' + error.message, 'error');
     }
 }
 
-// 显示状态消息
+// Show status message
 function showStatus(message, type = 'info') {
     const statusDiv = document.getElementById('status');
     statusDiv.className = `status ${type}`;
     statusDiv.innerHTML = message.replace(/\n/g, '<br>');
     
-    // 3秒后淡出信息类消息
+    // Fade out info messages after 3 seconds
     if (type === 'info') {
         setTimeout(() => {
             statusDiv.innerHTML = '';
@@ -283,7 +283,7 @@ function showStatus(message, type = 'info') {
     }
 }
 
-// 检查扩展是否在有效环境中运行
+// Check if extension is running in valid environment
 if (typeof chrome === 'undefined' || !chrome.runtime) {
-    showStatus('⚠️ 此页面需要在Chrome扩展环境中运行', 'error');
+    showStatus('⚠️ This page needs to run in Chrome extension environment', 'error');
 }
