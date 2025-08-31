@@ -719,7 +719,7 @@ const DEV_DEFAULT_CONFIG = {
   enabled: true,  // 设置为false可禁用开发默认配置
   apiConfig: {
     // 在这里填入您的开发API密钥
-    apiKey: "e45bb7e5b3c24248ad2a5e2d8be06387.n3V6k3bs2cczwDvi",  // 替换为您的实际API密钥
+    apiKey: "your-api-key-here",  // 替换为您的实际API密钥
     model: "glm-4.5",
     name: "开发默认配置",
     temperature: 0.6,

@@ -196,25 +196,30 @@ function renderCategoryChart(userBehavior, classificationStats) {
         
         // 如果有分类信息，也加入统计
         if (record.classification) {
-            const category = record.classification;
-            categoryFromBehavior[category] = (categoryFromBehavior[category] || 0) + 1;
+            // classification是一个对象，包含mainCategory和subCategory
+            if (record.classification.mainCategory && record.classification.mainCategory.id) {
+                const mainCategory = record.classification.mainCategory.id;
+                categoryFromBehavior[mainCategory] = (categoryFromBehavior[mainCategory] || 0) + 1;
+            }
         }
     });
     
     // 过滤掉非内容分类的统计数据
     const validCategories = [
         'technology', 'culture_arts', 'science_exploration', 
-        'society_humanity', 'lifestyle', 'education_growth', 'business_finance'
+        'society_humanity', 'lifestyle', 'education_growth', 'business_finance',
+        'entertainment'
     ];
     
-    // 只合并有效的内容分类数据
-    Object.entries(classificationStats).forEach(([category, count]) => {
+    // 只保留有效的分类数据
+    const filteredCategoryData = {};
+    Object.entries(categoryFromBehavior).forEach(([category, count]) => {
         if (validCategories.includes(category)) {
-            categoryFromBehavior[category] = (categoryFromBehavior[category] || 0) + count;
+            filteredCategoryData[category] = count;
         }
     });
     
-    const categoryData = Object.entries(categoryFromBehavior).map(([category, count]) => ({
+    const categoryData = Object.entries(filteredCategoryData).map(([category, count]) => ({
         name: getCategoryDisplayName(category),
         value: count
     })).filter(item => item.value > 0);
@@ -222,7 +227,7 @@ function renderCategoryChart(userBehavior, classificationStats) {
     const chartContainer = document.getElementById('categoryChart');
     
     if (categoryData.length === 0) {
-        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">No category data</p>';
+        chartContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">No category data available</p>';
         return;
     }
     
@@ -244,17 +249,18 @@ function renderCategoryChart(userBehavior, classificationStats) {
 // 根据标签分类到内容类别
 function classifyTagToCategory(tag) {
     const categoryKeywords = {
-        'technology': ['科技', 'AI', '编程', '人工智能', '技术', '代码', '软件', '硬件', '芯片', '算法', '开发', '程序', '计算机'],
-        'culture_arts': ['文化', '艺术', '历史', '哲学', '文学', '音乐', '电影', '书籍', '诗歌', '绘画', '传统', '古典', '文艺'],
-        'science_exploration': ['科学', '物理', '化学', '生物', '医学', '健康', '环境', '天文', '地理', '实验', '研究', '自然'],
-        'society_humanity': ['社会', '新闻', '时事', '政治', '法律', '心理学', '社会学', '人文', '思想', '公共', '议题'],
-        'lifestyle': ['生活', '美食', '旅行', '时尚', '家居', '烹饪', '购物', '娱乐', '休闲', '穿搭', '美妆', '日常'],
-        'education_growth': ['学习', '教育', '成长', '职业', '技能', '培训', '课程', '知识', '方法', '发展', '提升'],
-        'business_finance': ['商业', '投资', '创业', '金融', '经济', '市场', '管理', '财经', '理财', '资本', '企业']
+        'technology': ['科技', 'AI', '编程', '人工智能', '技术', '代码', '软件', '硬件', '芯片', '算法', '开发', '程序', '计算机', 'technology', 'ai', 'programming', 'software', 'hardware', 'development'],
+        'culture_arts': ['文化', '艺术', '历史', '哲学', '文学', '音乐', '电影', '书籍', '诗歌', '绘画', '传统', '古典', '文艺', 'culture', 'art', 'history', 'philosophy', 'literature', 'music', 'film'],
+        'science_exploration': ['科学', '物理', '化学', '生物', '医学', '健康', '环境', '天文', '地理', '实验', '研究', '自然', 'science', 'physics', 'chemistry', 'biology', 'medical', 'health', 'environment'],
+        'society_humanity': ['社会', '新闻', '时事', '政治', '法律', '心理学', '社会学', '人文', '思想', '公共', '议题', 'society', 'news', 'politics', 'law', 'psychology', 'humanity'],
+        'lifestyle': ['生活', '美食', '旅行', '时尚', '家居', '烹饪', '购物', '娱乐', '休闲', '穿搭', '美妆', '日常', 'lifestyle', 'food', 'travel', 'fashion', 'home', 'cooking'],
+        'education_growth': ['学习', '教育', '成长', '职业', '技能', '培训', '课程', '知识', '方法', '发展', '提升', 'education', 'learning', 'career', 'skill', 'training'],
+        'business_finance': ['商业', '投资', '创业', '金融', '经济', '市场', '管理', '财经', '理财', '资本', '企业', 'business', 'investment', 'finance', 'economy', 'market'],
+        'entertainment': ['娱乐', '游戏', '体育', '综艺', '休闲', '娱乐', 'entertainment', 'gaming', 'sports', 'leisure']
     };
     
     for (const [category, keywords] of Object.entries(categoryKeywords)) {
-        if (keywords.some(keyword => tag.includes(keyword))) {
+        if (keywords.some(keyword => tag.toLowerCase().includes(keyword.toLowerCase()))) {
             return category;
         }
     }
@@ -452,7 +458,8 @@ function getCategoryDisplayName(category) {
         'society_humanity': 'Society & Humanities',
         'lifestyle': 'Lifestyle',
         'education_growth': 'Education & Growth',
-        'business_finance': 'Business & Finance'
+        'business_finance': 'Business & Finance',
+        'entertainment': 'Entertainment & Leisure'
     };
     
     return categoryNames[category] || category;
